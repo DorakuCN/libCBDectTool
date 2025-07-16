@@ -1,0 +1,10 @@
+numpy==1.24.4
+matplotlib
+scikit-learn
+scipy
+opencv-python
+gpy
+Pillow
+h5py
+albumentations
+libCBDetect
