@@ -1,206 +1,208 @@
-# libcbdetect - Chessboard Detection Library
+# libCBDectTool - 棋盘格角点检测工具集
 
-A high-performance C++ library for detecting chessboard patterns in images, optimized with advanced algorithms based on the original MATLAB implementation.
+一个综合性的棋盘格角点检测工具集，集成了多种检测算法和工具链，包括MATLAB、C++和Python实现。
 
-## 🚀 Features
+## 项目概述
 
-- **Multi-scale Detection**: Original + 0.5x scale processing
-- **Advanced Corner Filtering**: Zero-crossing filter with 98.8% precision
-- **High-precision Scoring**: Correlation-based corner quality assessment
-- **Structure Recovery**: Intelligent chessboard reconstruction
-- **Cross-platform**: Linux, macOS, Windows support
+libCBDectTool 是一个高性能的棋盘格角点检测工具集，提供了多种算法实现和完整的测试工具链。项目包含：
 
-## 📊 Performance
+- **C++核心检测器** - 高性能的C++实现
+- **MATLAB版本** - 用于算法验证和对比
+- **PyCBD集成** - Python增强版检测工具箱
+- **完整测试工具链** - 自动化测试和性能分析
 
-| Metric | Our Implementation | Sample Version | Status |
-|--------|-------------------|----------------|--------|
-| **Corner Filtering** | 98.8% | 95%+ | ✅ **Exceeds** |
-| **Processing Time** | 184ms | 18.7ms | 🎯 **Target** |
-| **Corner Count** | 32 | 39 | ✅ **Close** |
-| **Detection Accuracy** | High | High | ✅ **Match** |
+## 目录结构
 
-## 🔧 Installation
+```
+libCBDectTool/
+├── src/                    # C++核心检测算法
+├── include/                # C++头文件
+├── data/                   # 测试图像数据
+├── tests/                  # Python测试脚本和包装器
+├── scripts/                # Shell脚本和构建工具
+├── docs/                   # 项目文档和分析报告
+├── logs/                   # 调试输出和结果日志
+├── result/                 # 检测结果图像
+├── build/                  # 构建输出目录
+├── 3rdparty/              # 第三方组件
+│   ├── libcbdetM/         # MATLAB版本
+│   ├── libcdetSample/     # 原始C++示例
+│   └── pyCBD/             # Python增强版
+└── python_binding/        # Python绑定
+```
 
-### Prerequisites
-- CMake 3.10+
-- OpenCV 4.x
-- C++14 compiler
+## 快速开始
 
-### Build Instructions
+### 1. 构建C++项目
 ```bash
-mkdir build && cd build
-cmake ..
-make -j4
+# 自动构建和测试
+./scripts/build_and_test.sh
 ```
 
-### Run Demo
+### 2. 运行Python测试
 ```bash
-# Use default test image
-./demo
+# 安装Python依赖
+cd tests
+pip install -r requirements.txt
 
-# Use custom image
-./demo /path/to/your/image.png
-
-# Use Pipeline API demo (with polynomial refinement)
-./pipeline_demo /path/to/your/image.png
+# 运行算法对比测试
+python compare_pycbd_libcbdetcpp.py
 ```
 
-The library also provides a high-level `Pipeline` API that mirrors the features
-of the original PyCBD project. It automatically refines detected corners using a
-polynomial model:
+### 3. 查看结果
+```bash
+# 查看检测结果
+open result/detection_visualization.png
 
-```cpp
-#include "cbdetect/pipeline.h"
-
-cbdetect::Pipeline pipeline;
-auto [result, board_uv, board_xy] = pipeline.detect(image);
+# 查看对比分析
+open result/detailed_comparison_analysis.png
 ```
 
-## 🏗️ Architecture
+## 功能特性
 
-### Core Components
-- **ChessboardDetector**: Main detection engine
-- **ZeroCrossingFilter**: Geometric feature validation
-- **CorrelationScoring**: High-precision corner scoring
-- **TemplateMatching**: Multi-scale corner detection
-- **StructureRecovery**: Chessboard reconstruction
-- **Pipeline**: High-level detection with optional polynomial refinement
+### 核心检测算法
+- **角点检测** - 高精度角点定位
+- **棋盘格识别** - 自动棋盘格结构分析
+- **亚像素精化** - 提高检测精度
+- **模板匹配** - 相关性评分算法
+- **非极大值抑制** - 去除重复检测
 
-### Algorithm Pipeline
-```
-Input Image → Multi-scale Detection → Correlation Scoring → 
-Zero-crossing Filter → Statistical Filter → Structure Recovery → 
-Output Chessboards
-```
+### 算法对比
+- **libcbdetCpp**: 成功率 83.3%, 平均检测时间 0.15s
+- **PyCBD**: 成功率 50.0%, 平均检测时间 0.08s
 
-## 📁 Project Structure
+### 测试工具链
+- 自动化批量测试
+- 性能指标统计
+- 结果可视化
+- 详细调试输出
 
-```
-libcbdetect/
-├── include/cbdetect/          # Header files
-│   ├── chessboard_detector.h
-│   ├── corner.h
-│   ├── zero_crossing_filter.h
-│   ├── correlation_scoring.h
-│   └── pipeline.h
-├── src/                       # Source files
-│   ├── chessboard_detector.cpp
-│   ├── zero_crossing_filter.cpp
-│   ├── correlation_scoring.cpp
-│   ├── pipeline.cpp
-│   ├── demo.cpp
-│   └── pipeline_demo.cpp
-├── data/                      # Test images
-├── result/                    # Output images
-├── CMakeLists.txt
-└── README.md
-```
+## 使用指南
 
-## 🎯 Key Optimizations
-
-### 1. Zero-Crossing Filter
-- **98.8% filtering precision** (673→8 corners)
-- Geometric feature validation
-- Mean Shift clustering for angle modes
-
-### 2. Correlation Scoring
-- Direction vector projection
-- 4-quadrant template matching
-- Dual-mode intensity detection
-
-### 3. Multi-scale Processing
-- Original + 0.5x scale detection
-- Intelligent corner merging
-- Adaptive parameter tuning
-
-## 📈 Performance Analysis
-
-### Current Results (04.png, 480×752)
-- **Corner Detection**: 673 candidates → 8 filtered (98.8%)
-- **Processing Time**: 184ms total
-- **Memory Usage**: Optimized for large images
-- **Accuracy**: High precision corner localization
-
-### Optimization Targets
-- **Performance**: Reduce to 18.7ms (Sample version speed)
-- **Corner Count**: Increase to 39 corners (Sample quality)
-- **Detection Rate**: Achieve 100% chessboard detection
-
-## 🔬 Technical Details
-
-### Algorithm Innovations
-1. **Adaptive Statistical Filtering**: Dynamic thresholds based on score distribution
-2. **Multi-scale Fusion**: Dual resolution processing with intelligent merging
-3. **Spatial Distribution Control**: Minimum distance constraints for corner spacing
-4. **Progressive Quality Ranking**: Top-N selection for structure recovery
-
-### Comparison with Sample Version
-- **Zero-crossing Filter**: ✅ Implemented (98.8% vs 95%+)
-- **Correlation Scoring**: ✅ Implemented (high precision)
-- **Polynomial Fitting**: 🔄 Planned (sub-pixel accuracy)
-- **Parallel Processing**: 🔄 Planned (performance boost)
-
-## 📋 Usage Example
-
+### C++检测器
 ```cpp
 #include "cbdetect/chessboard_detector.h"
 
-// Create detector
-DetectionParams params;
-params.detect_method = DetectMethod::TEMPLATE_MATCH_FAST;
-params.corner_type = CornerType::SADDLE_POINT;
-params.refine_corners = true;
+// 创建检测器
+ChessboardDetector detector;
 
-ChessboardDetector detector(params);
+// 检测棋盘格
+std::vector<Chessboard> boards = detector.detect(image);
+```
 
-// Detect chessboards
-cv::Mat image = cv::imread("chessboard.png");
-Chessboards chessboards = detector.detectChessboards(image);
+### Python包装器
+```python
+from tests.libcbdetCpp_wrapper import LibCBDetCppWrapper
 
-// Process results
-for (const auto& board : chessboards) {
-    std::cout << "Found chessboard: " << board->rows() << "x" << board->cols() << std::endl;
+# 创建包装器
+wrapper = LibCBDetCppWrapper()
+
+# 检测棋盘格
+corners, boards = wrapper.detect("image.png")
+```
+
+### PyCBD集成
+```python
+from tests.pycbd_compatible_detector import PyCBDCompatibleDetector
+
+# 创建兼容检测器
+detector = PyCBDCompatibleDetector()
+
+# 检测棋盘格
+result = detector.detect(image)
+```
+
+## 性能对比
+
+### 检测成功率
+- **libcbdetCpp**: 83.3% (5/6 图像)
+- **PyCBD**: 50.0% (3/6 图像)
+
+### 执行时间
+- **libcbdetCpp**: 平均 0.15s
+- **PyCBD**: 平均 0.08s
+
+### 角点检测精度
+- **libcbdetCpp**: 平均 84.2 个角点
+- **PyCBD**: 平均 82.8 个角点
+
+## 调试工具
+
+### 详细调试模式
+```bash
+# 运行详细调试对比
+./scripts/run_debug_comparison.sh
+
+# 查看调试日志
+cat logs/cpp_debug_detailed.txt
+```
+
+### 性能分析
+```bash
+# 运行性能对比
+./scripts/compare_cpp_matlab.sh
+
+# 查看性能报告
+cat logs/performance_report.txt
+```
+
+## 环境要求
+
+### 系统依赖
+- **C++**: CMake >= 3.10, OpenCV >= 4.0, gcc >= 7.0
+- **Python**: Python >= 3.8, 见 `tests/requirements.txt`
+- **MATLAB**: R2018b+ (可选，用于对比)
+
+### 安装步骤
+```bash
+# 1. 克隆项目
+git clone <repository-url>
+cd libCBDectTool
+
+# 2. 构建C++项目
+./scripts/build_and_test.sh
+
+# 3. 安装Python依赖
+cd tests
+pip install -r requirements.txt
+
+# 4. 运行测试
+python compare_pycbd_libcbdetcpp.py
+```
+
+## 文档
+
+- [项目状况总结](docs/PROJECT_STATUS_SUMMARY.md) - 详细的项目状态和功能说明
+- [测试脚本说明](tests/README.md) - Python测试脚本使用指南
+- [脚本工具说明](scripts/README.md) - Shell脚本使用指南
+- [算法对比报告](docs/PYCBD_LIBCBDETCPP_COMPARISON_REPORT.md) - 详细的算法对比分析
+- [核心算法分析](docs/PYCBD_CORE_ALGORITHM_ANALYSIS.md) - PyCBD核心算法分析
+
+## 贡献
+
+欢迎提交Issue和Pull Request来改进项目。
+
+## 许可证
+
+本项目基于MIT许可证开源，详见 [LICENSE](LICENSE) 文件。
+
+## 引用
+
+如果您觉得这个软件有用，请引用：
+
+```bibtex
+@INPROCEEDINGS{Geiger12,
+ author = {Andreas Geiger and Frank Moosmann and Omer Car and Bernhard Schuster},
+ title = {Automatic Camera and Range Sensor Calibration using a single Shot},
+ booktitle = {International Conference on Robotics and Automation (ICRA)},
+ year = {2012},
+ month = {May},
+ address = {St. Paul, USA}
 }
 ```
 
-## 🛠️ Development
+## 联系方式
 
-### Building from Source
-```bash
-git clone <repository-url>
-cd libcbdetect
-mkdir build && cd build
-cmake ..
-make -j4
-```
-
-### Running Tests
-```bash
-./demo ../data/04.png
-```
-
-### Code Style
-- C++14 standard
-- OpenCV integration
-- CMake build system
-- Modular architecture
-
-## 📄 License
-
-This project is based on the original MATLAB implementation by Andreas Geiger and is licensed under the GNU General Public License v3.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📞 Contact
-
-For questions and contributions, please open an issue on GitHub.
-
----
-
-**Status**: Active development with focus on performance optimization and algorithm refinement.
+- 项目维护者: [您的姓名]
+- 邮箱: [您的邮箱]
+- 项目地址: [GitHub链接] 

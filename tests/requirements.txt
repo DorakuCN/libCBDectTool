@@ -1,0 +1,37 @@
+# Python依赖包列表
+# 用于libCBDectTool项目的测试脚本
+
+# 核心科学计算库
+numpy>=1.21.0
+scipy>=1.7.0
+
+# 图像处理
+opencv-python>=4.5.0
+Pillow>=8.0.0
+
+# 数据分析和可视化
+matplotlib>=3.4.0
+pandas>=1.3.0
+seaborn>=0.11.0
+
+# 机器学习（用于PyCBD）
+scikit-learn>=1.0.0
+
+# 高斯过程（PyCBD核心依赖）
+GPy>=1.9.0
+
+# 其他工具库
+tqdm>=4.62.0
+pyyaml>=5.4.0
+requests>=2.25.0
+
+# 开发和测试工具
+pytest>=6.0.0
+pytest-cov>=2.12.0
+black>=21.0.0
+flake8>=3.9.0
+
+# 可选依赖（用于高级功能）
+# jupyter>=1.0.0
+# ipython>=7.0.0
+# plotly>=5.0.0 
