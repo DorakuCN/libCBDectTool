@@ -1,122 +1,164 @@
-#include <iostream>
+#include "cbdetect/chessboard_detector.h"
+#include "cbdetect/chessboard.h"
+#include "cbdetect/corner.h"
+#include <chrono>
 #include <opencv2/opencv.hpp>
-#include "cbdetect/cbdetect.h"
+#include <vector>
+#include <iostream>
+#include <string>
 
-using namespace cv;
-using namespace cbdetect;
+using namespace std::chrono;
 
-void drawResults(Mat& image, const Chessboards& chessboards, const Corners& corners) {
-    // Draw detected corners
-    ChessboardDetector::drawCorners(image, corners, Scalar(0, 255, 0), 3);
+/**
+ * 棋盘格检测演示函数
+ * @param image_path 图像文件路径
+ * @param corner_type 角点类型 (SADDLE_POINT 或 MONKEY_SADDLE_POINT)
+ * @param debug_mode 是否启用调试模式
+ */
+void detect_chessboard(const std::string& image_path, 
+                      cbdetect::CornerType corner_type = cbdetect::CornerType::SADDLE_POINT,
+                      bool debug_mode = false) {
     
-    // Draw detected chessboards
-    ChessboardDetector::drawChessboards(image, chessboards, corners, Scalar(0, 0, 255));
+    // 读取图像
+    cv::Mat img = cv::imread(image_path, cv::IMREAD_COLOR);
     
-    // Print detection statistics
-    std::cout << "Detected " << corners.size() << " corners" << std::endl;
-    std::cout << "Detected " << chessboards.size() << " chessboards" << std::endl;
+    if (img.empty()) {
+        std::cerr << "Error: Could not load image '" << image_path << "'" << std::endl;
+        return;
+    }
+
+    std::cout << "Processing image: " << image_path << " (size: " << img.cols << "x" << img.rows << ")" << std::endl;
+
+    // 创建检测参数
+    cbdetect::DetectionParams params;
+    params.corner_type = corner_type;
+    params.show_processing = debug_mode;
+    params.show_debug_images = debug_mode;
+    params.overlay_results = debug_mode;
+
+    // 创建检测器
+    cbdetect::ChessboardDetector detector(params);
+
+    // 执行检测
+    auto t1 = high_resolution_clock::now();
     
-    for (size_t i = 0; i < chessboards.size(); ++i) {
-        const auto& cb = chessboards[i];
-        std::cout << "Chessboard " << i + 1 << ": " 
-                  << cb->rows() << "x" << cb->cols() 
-                  << " corners, energy: " << cb->energy << std::endl;
+    cbdetect::Chessboards chessboards = detector.detectChessboards(img);
+    
+    auto t2 = high_resolution_clock::now();
+    
+    // 计算执行时间
+    auto duration = duration_cast<microseconds>(t2 - t1);
+    double total_time_ms = duration.count() / 1000.0;
+
+    // 获取角点信息（用于可视化）
+    cbdetect::Corners corners = detector.findCorners(img);
+
+    // 输出结果
+    std::cout << "Detection " << (!chessboards.empty() ? "SUCCESS" : "FAILED") << std::endl;
+    std::cout << "Total execution time: " << total_time_ms << " ms" << std::endl;
+    std::cout << "Detected " << corners.size() << " corners and " << chessboards.size() << " boards" << std::endl;
+
+    if (debug_mode) {
+        std::cout << "Debug mode enabled - detailed information:" << std::endl;
+        for (size_t i = 0; i < corners.size(); ++i) {
+            std::cout << "  Corner " << i << ": (" << corners[i].pt.x << ", " << corners[i].pt.y 
+                      << ") score: " << corners[i].quality_score << std::endl;
+        }
+        
+        for (size_t i = 0; i < chessboards.size(); ++i) {
+            const auto& board = chessboards[i];
+            std::cout << "  Board " << i << ": " << board->rows() << "x" << board->cols() 
+                      << " corners, energy: " << board->energy << std::endl;
+        }
+    }
+
+    // 可视化结果
+    cv::Mat result_img = img.clone();
+    
+    // 绘制角点
+    cbdetect::ChessboardDetector::drawCorners(result_img, corners, cv::Scalar(0, 255, 0), 3);
+    
+    // 绘制棋盘格
+    cbdetect::ChessboardDetector::drawChessboards(result_img, chessboards, corners, cv::Scalar(255, 0, 0));
+
+    // 保存结果图像
+    std::string output_path = "result_" + std::to_string(time(nullptr)) + ".png";
+    cv::imwrite(output_path, result_img);
+    std::cout << "Result saved to: " << output_path << std::endl;
+
+    // 显示结果（可选）
+    if (debug_mode) {
+        cv::imshow("Chessboard Detection Result", result_img);
+        cv::waitKey(0);
+        cv::destroyAllWindows();
     }
 }
 
-int main(int argc, char** argv) {
-    std::cout << "==================================" << std::endl;
-    std::cout << "libcbdetect C++ Demo" << std::endl;
-    std::cout << "Version: " << Version::getString() << std::endl;
-    std::cout << "==================================" << std::endl;
-    
-    // Parse command line arguments
-    std::string image_path;
-    if (argc >= 2) {
-        image_path = argv[1];
-        std::cout << "Processing image: " << image_path << std::endl;
-    } else {
-        image_path = "data/04.png";  // Default test image
-        std::cout << "No image specified, using default: " << image_path << std::endl;
-        std::cout << "Usage: " << argv[0] << " <image_path>" << std::endl;
+/**
+ * 显示使用说明
+ */
+void print_usage(const char* program_name) {
+    std::cout << "Usage: " << program_name << " [options] [image_path]" << std::endl;
+    std::cout << "Options:" << std::endl;
+    std::cout << "  -h, --help          Show this help message" << std::endl;
+    std::cout << "  -d, --debug         Enable debug mode" << std::endl;
+    std::cout << "  -t, --type TYPE     Corner type (saddle/monkey) [default: saddle]" << std::endl;
+    std::cout << "  image_path          Path to input image [default: data/04.png]" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Examples:" << std::endl;
+    std::cout << "  " << program_name << " data/04.png" << std::endl;
+    std::cout << "  " << program_name << " -d data/05.png" << std::endl;
+    std::cout << "  " << program_name << " -t monkey data/06.png" << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+    std::string image_path = "data/04.png";  // 默认图像路径
+    cbdetect::CornerType corner_type = cbdetect::CornerType::SADDLE_POINT;  // 默认角点类型
+    bool debug_mode = false;
+
+    // 解析命令行参数
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        
+        if (arg == "-h" || arg == "--help") {
+            print_usage(argv[0]);
+            return 0;
+        } else if (arg == "-d" || arg == "--debug") {
+            debug_mode = true;
+        } else if (arg == "-t" || arg == "--type") {
+            if (i + 1 < argc) {
+                std::string type = argv[++i];
+                if (type == "monkey") {
+                    corner_type = cbdetect::CornerType::MONKEY_SADDLE_POINT;
+                } else if (type == "saddle") {
+                    corner_type = cbdetect::CornerType::SADDLE_POINT;
+                } else {
+                    std::cerr << "Error: Unknown corner type '" << type << "'" << std::endl;
+                    std::cerr << "Valid types: saddle, monkey" << std::endl;
+                    return 1;
+                }
+            } else {
+                std::cerr << "Error: Missing argument for --type" << std::endl;
+                return 1;
+            }
+        } else if (arg[0] != '-') {
+            // 非选项参数作为图像路径
+            image_path = arg;
+        } else {
+            std::cerr << "Error: Unknown option '" << arg << "'" << std::endl;
+            print_usage(argv[0]);
+            return 1;
+        }
     }
-    
-    // Load and validate image
-    Mat image = imread(image_path, IMREAD_COLOR);
-    if (image.empty()) {
-        std::cerr << "Error: Could not load image '" << image_path << "'" << std::endl;
-        std::cerr << "Please check the file path and try again." << std::endl;
-        return -1;
-    }
-    std::cout << "Image loaded successfully (" << image.cols << "x" << image.rows << ")" << std::endl;
-    
-    // Create detector with enhanced parameters
-    DetectionParams params;
-    params.detect_method = DetectMethod::TEMPLATE_MATCH_FAST;
-    params.corner_type = CornerType::SADDLE_POINT;
-    params.corner_threshold = 0.01f;  // Match MATLAB threshold
-    params.refine_corners = true;
-    params.show_processing = true;
-    params.show_debug_images = false;
-    
-    // Use multiple scales for better detection (参考MATLAB版本)
-    params.template_radii = {4, 8, 12};
-    params.energy_threshold = -10.0f;
-    
-    std::cout << "Detection method: " << 
-        (params.detect_method == DetectMethod::TEMPLATE_MATCH_FAST ? "Template Matching (Fast)" :
-         params.detect_method == DetectMethod::HESSIAN_RESPONSE ? "Hessian Response" :
-         "Harris Corners") << std::endl;
-    std::cout << "Corner type: " << 
-        (params.corner_type == CornerType::SADDLE_POINT ? "Saddle Point" : "Monkey Saddle Point") 
-        << std::endl;
-    
-    ChessboardDetector detector(params);
-    
-    // Detect chessboards
-    std::cout << "Detecting chessboards..." << std::endl;
-    auto start = getTickCount();
-    
-    Chessboards chessboards = detector.detectChessboards(image);
-    
-    auto end = getTickCount();
-    double time_ms = (end - start) / getTickFrequency() * 1000.0;
-    
-    std::cout << "Detection completed in " << time_ms << " ms" << std::endl;
-    
-    // For visualization, we also need the corners
-    Corners corners = detector.findCorners(image);
-    // DEBUG: dump final corner UV coordinates for comparison
-    std::cout << "DEBUG: final corners (uv coords) [" << corners.size() << "]:\n";
-    for (size_t i = 0; i < corners.size(); ++i) {
-        std::cout << "  " << i << ": ("
-                  << corners[i].pt.x << "," << corners[i].pt.y << ")\n";
-    }
-    
-    // Draw results
-    Mat result_image = image.clone();
-    drawResults(result_image, chessboards, corners);
-    
-    // Show results
-    namedWindow("Original Image", WINDOW_AUTOSIZE);
-    namedWindow("Detection Results", WINDOW_AUTOSIZE);
-    
-    imshow("Original Image", image);
-    imshow("Detection Results", result_image);
-    
-    // Save result
-    std::string output_path = "result_" + image_path;
-    size_t slash_pos = output_path.find_last_of("/\\");
-    if (slash_pos != std::string::npos) {
-        output_path = "result/" + output_path.substr(slash_pos + 1);
-    }
-    
-    imwrite(output_path, result_image);
-    std::cout << "Result saved to: " << output_path << std::endl;
-    
-    // Wait for key press
-    std::cout << "Press any key to exit..." << std::endl;
-    waitKey(0);
-    
+
+    std::cout << "=== Chessboard Detection Demo ===" << std::endl;
+    std::cout << "Image: " << image_path << std::endl;
+    std::cout << "Corner type: " << (corner_type == cbdetect::CornerType::SADDLE_POINT ? "SaddlePoint" : "MonkeySaddle") << std::endl;
+    std::cout << "Debug mode: " << (debug_mode ? "ON" : "OFF") << std::endl;
+    std::cout << "=================================" << std::endl;
+
+    // 执行检测
+    detect_chessboard(image_path, corner_type, debug_mode);
+
     return 0;
 } 
