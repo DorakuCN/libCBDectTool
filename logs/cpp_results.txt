@@ -1,0 +1,146 @@
+==================================
+libcbdetect C++ Demo
+Version: 1.0.0
+==================================
+Processing image: data/04.png
+Image loaded successfully (480x752)
+Detection method: Template Matching (Fast)
+Corner type: Saddle Point
+Detecting chessboards...
+Starting chessboard detection...
+Starting multi-scale corner detection...
+
+=== C++ Corner Detection Debug (scale=1) ===
+Corner detection using template matching (fast)...
+Non-maximum suppression parameters:
+  - NMS radius: 3
+  - NMS threshold: 0.025
+  - NMS margin: 5
+Extracted 630 corner candidates
+Initial corner candidates from NMS: 630
+Refining corners (simplified implementation)...
+After subpixel refinement: 630 corners (removed 0 invalid)
+Scoring corners...
+[Correlation Scoring] Scored 630 corners
+Score statistics: min=0.0000, max=34.7497, mean=5.3772, median=0.0000
+Score threshold: 0.0100
+After score filter (threshold=0.0100): 270 corners (removed 360 below threshold)
+Final corner detection result: 270 corners
+Original scale (480x752): 270 corners
+
+=== C++ Corner Detection Debug (scale=0.5000) ===
+Corner detection using template matching (fast)...
+Non-maximum suppression parameters:
+  - NMS radius: 3
+  - NMS threshold: 0.0250
+  - NMS margin: 5
+Extracted 246 corner candidates
+Initial corner candidates from NMS: 246
+Refining corners (simplified implementation)...
+After subpixel refinement: 246 corners (removed 0 invalid)
+Scoring corners...
+[Correlation Scoring] Scored 246 corners
+Score statistics: min=0.0000, max=5.7074, mean=0.0328, median=0.0000
+Score threshold: 0.0100
+After score filter (threshold=0.0100): 3 corners (removed 243 below threshold)
+Final corner detection result: 3 corners
+Small scale (240x376): 3 corners
+
+=== C++ Zero Crossing Filter Debug ===
+Input corners: 271
+Filter parameters:
+  - n_circle: 32
+  - n_bin: 32
+  - crossing_threshold: 3
+  - need_crossings: 4
+  - need_modes: 2
+  - sample_radius_factor: 0.7500
+Filter results:
+  - Passed: 1/271 (0.37%)
+  - Failed due to boundary: 235
+  - Failed due to other reasons: 35
+MATLAB comparison:
+  - MATLAB typically passes ~70-90% of corners
+  - C++ passing 0.37% (should be higher)
+WARNING: Very low pass rate suggests filter is too strict!
+[Zero Crossing Filter] 1/271 corners passed filter (0.37%)
+After merging: 1 corners
+Found 1 corner candidates
+Structure recovery with adaptive strictness:
+  Energy thresholds: init=0.00, final=-2.00 (MATLAB/Sample standard)
+  Max processing time: 30s
+  1/1 (found: 0, energy_rej: 0, init_fail: 0)
+  Attempting to initialize chessboard for seed 0
+    initChessboard: Starting for seed 0, total corners: 1
+    initChessboard: FAIL - insufficient corners or invalid seed (1 < 6 or seed 0 invalid)
+  Seed 0 result: FAILED
+Structure recovery completed:
+  Processed: 1/1 corners
+  Init failures: 1
+  Energy rejected: 0 (thresholds: 0.00/-2.00)
+  Found: 0 chessboards (sample target: 1)
+  Time: 0 ms
+  ANALYSIS: No chessboards found - need to further relax energy threshold
+Reconstructed 0 chessboards
+Detection completed in 179.68 ms
+Starting multi-scale corner detection...
+
+=== C++ Corner Detection Debug (scale=1.00) ===
+Corner detection using template matching (fast)...
+Non-maximum suppression parameters:
+  - NMS radius: 3
+  - NMS threshold: 0.03
+  - NMS margin: 5
+Extracted 630 corner candidates
+Initial corner candidates from NMS: 630
+Refining corners (simplified implementation)...
+After subpixel refinement: 630 corners (removed 0 invalid)
+Scoring corners...
+[Correlation Scoring] Scored 630 corners
+Score statistics: min=0.0000, max=34.7497, mean=5.3772, median=0.0000
+Score threshold: 0.0100
+After score filter (threshold=0.0100): 270 corners (removed 360 below threshold)
+Final corner detection result: 270 corners
+Original scale (480x752): 270 corners
+
+=== C++ Corner Detection Debug (scale=0.5000) ===
+Corner detection using template matching (fast)...
+Non-maximum suppression parameters:
+  - NMS radius: 3
+  - NMS threshold: 0.0250
+  - NMS margin: 5
+Extracted 246 corner candidates
+Initial corner candidates from NMS: 246
+Refining corners (simplified implementation)...
+After subpixel refinement: 246 corners (removed 0 invalid)
+Scoring corners...
+[Correlation Scoring] Scored 246 corners
+Score statistics: min=0.0000, max=5.7074, mean=0.0328, median=0.0000
+Score threshold: 0.0100
+After score filter (threshold=0.0100): 3 corners (removed 243 below threshold)
+Final corner detection result: 3 corners
+Small scale (240x376): 3 corners
+
+=== C++ Zero Crossing Filter Debug ===
+Input corners: 271
+Filter parameters:
+  - n_circle: 32
+  - n_bin: 32
+  - crossing_threshold: 3
+  - need_crossings: 4
+  - need_modes: 2
+  - sample_radius_factor: 0.7500
+Filter results:
+  - Passed: 1/271 (0.37%)
+  - Failed due to boundary: 235
+  - Failed due to other reasons: 35
+MATLAB comparison:
+  - MATLAB typically passes ~70-90% of corners
+  - C++ passing 0.37% (should be higher)
+WARNING: Very low pass rate suggests filter is too strict!
+[Zero Crossing Filter] 1/271 corners passed filter (0.37%)
+After merging: 1 corners
+Detected 1 corners
+Detected 0 chessboards
+Result saved to: result/04.png
+Press any key to exit...

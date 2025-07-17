@@ -1,0 +1,673 @@
+================================
+MATLAB libcbdetM Demo with Debug Info
+================================
+Image loaded: 480x752
+
+=== CORNER DETECTION ===
+Filtering ...
+=== MATLAB Corner Detection Debug ===
+Initial corner candidates from NMS: 334
+Refining ...
+After subpixel refinement: 334 corners (removed 0 invalid)
+After edge filter: 175 corners (removed 159 without edges)
+Scoring ...
+Corner scoring completed for 175 corners
+Score statistics: min=0.0000, max=0.3370, mean=0.0546, std=0.1018
+Score threshold (tau): 0.0100
+After score filter (tau=0.0100): 51 corners (removed 124 below threshold)
+Final corner detection result: 51 corners
+
+MATLAB corners first 10 coordinates (0-based, after conversion):
+  0: (42.36, 350.15)
+  1: (47.34, 290.33)
+  2: (48.56, 412.98)
+  3: (64.65, 468.45)
+  4: (79.23, 342.68)
+  5: (84.88, 272.93)
+  6: (86.35, 418.04)
+  7: (84.97, 510.85)
+  8: (104.40, 481.51)
+  9: (104.66, 541.40)
+MATLAB: findCorners output p (0-based coords):
+   41.3599  349.1476
+   46.3355  289.3325
+   47.5637  411.9816
+   63.6490  467.4521
+   78.2309  341.6792
+   83.8824  271.9260
+   85.3529  417.0387
+   83.9709  509.8546
+  103.3991  480.5146
+  103.6608  540.4046
+  121.5820  562.2764
+  124.5043  524.8073
+  140.3998  332.1994
+  143.2337  554.2341
+  143.4621  254.0126
+  148.3395  420.3271
+  158.0932  573.2521
+  164.0697  490.4924
+  179.9852  534.7992
+  192.3587  562.5743
+  202.2264  579.6247
+  223.0352  241.4061
+  228.7031  323.3327
+  235.6288  417.5814
+  241.5741  491.0804
+  245.4792  535.9565
+  247.8072  563.1638
+  249.2939  580.3214
+  260.0437  102.8429
+  262.9337  103.5173
+  276.0133  638.9255
+  274.5344  106.3163
+  281.5500  107.9082
+  296.3789  573.2557
+  302.7080  554.7629
+  304.4755  242.0647
+  310.3614  525.2644
+  317.9963  318.9868
+  318.3595  478.6914
+  322.9311  407.1919
+  338.7021  560.4495
+  350.4177  538.9149
+  367.0893  250.4255
+  363.9961  506.9249
+  370.3868  600.3746
+  376.9873  459.8641
+  381.7840  319.1018
+  385.1565  394.5340
+  400.8250  123.0888
+  408.7593  141.0390
+  423.1808  562.1201
+
+Corner detection completed in 540.192 ms
+Found 51 corners
+
+First 5 corners (if available):
+  Corner 1: pos=(41.36,349.15), v1=(0.019,1.000), v2=(-0.981,0.196), score=0.318
+  Corner 2: pos=(46.34,289.33), v1=(-0.136,0.991), v2=(-0.898,0.441), score=0.256
+  Corner 3: pos=(47.56,411.98), v1=(0.992,0.125), v2=(0.154,0.988), score=0.320
+  Corner 4: pos=(63.65,467.45), v1=(0.948,0.317), v2=(0.320,0.948), score=0.172
+  Corner 5: pos=(78.23,341.68), v1=(-0.001,1.000), v2=(-0.988,0.157), score=0.331
+
+=== CHESSBOARD DETECTION ===
+Structure recovery:
+=== MATLAB Structure Recovery Debug ===
+Total corners available: 51
+Energy thresholds: init=0, final=-10 (MATLAB standard)
+Processing seed 1/51
+  Attempting to initialize chessboard for seed 1
+    initChessboard: Starting for seed 1, total corners: 51
+    initChessboard: Seed 1 direction vectors - v1: (0.019,1.000), v2: (-0.981,0.196)
+    Debug: seed 1 neighbors - right: 3, left: 2, bottom: 4, top: 5
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.020, dist2_std/mean=NaN)
+  Seed 1 result: FAILED (initialization)
+Processing seed 2/51
+  Attempting to initialize chessboard for seed 2
+    initChessboard: Starting for seed 2, total corners: 51
+    initChessboard: Seed 2 direction vectors - v1: (-0.136,0.991), v2: (-0.898,0.441)
+    Debug: seed 2 neighbors - right: 1, left: 6, bottom: 3, top: 15
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.625, dist2_std/mean=0.506)
+  Seed 2 result: FAILED (initialization)
+Processing seed 3/51
+  Attempting to initialize chessboard for seed 3
+    initChessboard: Starting for seed 3, total corners: 51
+    initChessboard: Seed 3 direction vectors - v1: (0.992,0.125), v2: (0.154,0.988)
+    Debug: seed 3 neighbors - right: 7, left: 1, bottom: 4, top: 2
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=1.104, dist2_std/mean=0.375)
+  Seed 3 result: FAILED (initialization)
+Processing seed 4/51
+  Attempting to initialize chessboard for seed 4
+    initChessboard: Starting for seed 4, total corners: 51
+    initChessboard: Seed 4 direction vectors - v1: (0.948,0.317), v2: (0.320,0.948)
+    Debug: seed 4 neighbors - right: 9, left: 3, bottom: 8, top: 1
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=1.026, dist2_std/mean=0.503)
+  Seed 4 result: FAILED (initialization)
+Processing seed 5/51
+  Attempting to initialize chessboard for seed 5
+    initChessboard: Starting for seed 5, total corners: 51
+    initChessboard: Seed 5 direction vectors - v1: (-0.001,1.000), v2: (-0.988,0.157)
+    Debug: seed 5 neighbors - right: 7, left: 6, bottom: 1, top: 13
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.092, dist2_std/mean=0.329)
+  Seed 5 result: FAILED (initialization)
+Processing seed 6/51
+  Attempting to initialize chessboard for seed 6
+    initChessboard: Starting for seed 6, total corners: 51
+    initChessboard: Seed 6 direction vectors - v1: (-0.140,0.990), v2: (-0.945,0.327)
+    Debug: seed 6 neighbors - right: 5, left: 15, bottom: 2, top: 22
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.772, dist2_std/mean=0.620)
+  Seed 6 result: FAILED (initialization)
+Processing seed 7/51
+  Attempting to initialize chessboard for seed 7
+    initChessboard: Starting for seed 7, total corners: 51
+    initChessboard: Seed 7 direction vectors - v1: (0.997,0.073), v2: (0.150,0.989)
+    Debug: seed 7 neighbors - right: 16, left: 3, bottom: 9, top: 5
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 7 result: SUCCESS (initialization)
+  Energy check: seed 7 has energy -6.72690 (threshold: 0)
+  Growing chessboard from seed 7...
+    Growth iteration 1: energy -6.727 -> -8.969
+    Growth iteration 2: energy -8.969 -> -11.959
+    Growth iteration 3: energy -11.959 -> -14.949
+    Growth iteration 4: energy -14.949 -> -18.686
+    Growth iteration 5: energy -18.686 -> -22.423
+    Growth iteration 6: energy -22.423 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 7 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 7 -> final_energy -31.39222 < -10
+Processing seed 8/51
+  Attempting to initialize chessboard for seed 8
+    initChessboard: Starting for seed 8, total corners: 51
+    initChessboard: Seed 8 direction vectors - v1: (0.939,0.343), v2: (0.448,0.894)
+    Debug: seed 8 neighbors - right: 12, left: 4, bottom: 10, top: 3
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.900, dist2_std/mean=0.660)
+  Seed 8 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 9
+    initChessboard: Starting for seed 9, total corners: 51
+    initChessboard: Seed 9 direction vectors - v1: (0.981,0.195), v2: (0.322,0.947)
+    Debug: seed 9 neighbors - right: 18, left: 4, bottom: 12, top: 7
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 9 result: SUCCESS (initialization)
+  Energy check: seed 9 has energy -6.75184 (threshold: 0)
+  Growing chessboard from seed 9...
+    Growth iteration 1: energy -6.752 -> -9.002
+    Growth iteration 2: energy -9.002 -> -12.003
+    Growth iteration 3: energy -12.003 -> -15.004
+    Growth iteration 4: energy -15.004 -> -18.755
+    Growth iteration 5: energy -18.755 -> -22.506
+    Growth iteration 6: energy -22.506 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 9 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 9 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 10
+    initChessboard: Starting for seed 10, total corners: 51
+    initChessboard: Seed 10 direction vectors - v1: (0.950,0.312), v2: (0.571,0.821)
+    Debug: seed 10 neighbors - right: 14, left: 8, bottom: 11, top: 4
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.727, dist2_std/mean=0.572)
+  Seed 10 result: FAILED (initialization)
+Processing seed 11/51
+  Attempting to initialize chessboard for seed 11
+    initChessboard: Starting for seed 11, total corners: 51
+    initChessboard: Seed 11 direction vectors - v1: (0.954,0.301), v2: (0.655,0.756)
+    Debug: seed 11 neighbors - right: 17, left: 10, bottom: 14, top: 8
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.601, dist2_std/mean=0.279)
+  Seed 11 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 12
+    initChessboard: Starting for seed 12, total corners: 51
+    initChessboard: Seed 12 direction vectors - v1: (0.978,0.208), v2: (0.453,0.892)
+    Debug: seed 12 neighbors - right: 19, left: 8, bottom: 14, top: 9
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 12 result: SUCCESS (initialization)
+  Energy check: seed 12 has energy -7.03495 (threshold: 0)
+  Growing chessboard from seed 12...
+    Growth iteration 1: energy -7.035 -> -9.359
+    Growth iteration 2: energy -9.359 -> -12.077
+    Growth iteration 3: energy -12.077 -> -15.096
+    Growth iteration 4: energy -15.096 -> -18.755
+    Growth iteration 5: energy -18.755 -> -22.506
+    Growth iteration 6: energy -22.506 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 12 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 12 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 13
+    initChessboard: Starting for seed 13, total corners: 51
+    initChessboard: Seed 13 direction vectors - v1: (0.027,1.000), v2: (-0.994,0.105)
+    Debug: seed 13 neighbors - right: 16, left: 15, bottom: 5, top: 23
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 13 result: SUCCESS (initialization)
+  Energy check: seed 13 has energy -7.44792 (threshold: 0)
+  Growing chessboard from seed 13...
+    Growth iteration 1: energy -7.448 -> -9.931
+    Growth iteration 2: energy -9.931 -> -13.241
+    Growth iteration 3: energy -13.241 -> -16.551
+    Growth iteration 4: energy -16.551 -> -18.961
+    Growth iteration 5: energy -18.961 -> -22.645
+    Growth iteration 6: energy -22.645 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 13 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 13 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 14
+    initChessboard: Starting for seed 14, total corners: 51
+    initChessboard: Seed 14 direction vectors - v1: (0.982,0.190), v2: (0.559,0.829)
+    Debug: seed 14 neighbors - right: 20, left: 10, bottom: 17, top: 12
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 14 result: SUCCESS (initialization)
+  Energy check: seed 14 has energy -7.01913 (threshold: 0)
+  Growing chessboard from seed 14...
+    Growth iteration 1: energy -7.019 -> -9.359
+    Growth iteration 2: energy -9.359 -> -12.077
+    Growth iteration 3: energy -12.077 -> -15.096
+    Growth iteration 4: energy -15.096 -> -18.755
+    Growth iteration 5: energy -18.755 -> -22.506
+    Growth iteration 6: energy -22.506 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 14 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 14 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 15
+    initChessboard: Starting for seed 15, total corners: 51
+    initChessboard: Seed 15 direction vectors - v1: (-0.071,0.997), v2: (-0.980,0.201)
+    Debug: seed 15 neighbors - right: 13, left: 22, bottom: 6, top: 36
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.902, dist2_std/mean=0.543)
+  Seed 15 result: FAILED (initialization)
+Processing seed 16/51
+  Attempting to initialize chessboard for seed 16
+    initChessboard: Starting for seed 16, total corners: 51
+    initChessboard: Seed 16 direction vectors - v1: (1.000,0.001), v2: (0.136,0.991)
+    Debug: seed 16 neighbors - right: 24, left: 7, bottom: 18, top: 13
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 16 result: SUCCESS (initialization)
+  Energy check: seed 16 has energy -7.44792 (threshold: 0)
+  Growing chessboard from seed 16...
+    Growth iteration 1: energy -7.448 -> -9.931
+    Growth iteration 2: energy -9.931 -> -13.241
+    Growth iteration 3: energy -13.241 -> -16.551
+    Growth iteration 4: energy -16.551 -> -18.961
+    Growth iteration 5: energy -18.961 -> -22.645
+    Growth iteration 6: energy -22.645 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 16 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 16 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 17
+    initChessboard: Starting for seed 17, total corners: 51
+    initChessboard: Seed 17 direction vectors - v1: (0.988,0.157), v2: (0.640,0.769)
+    Debug: seed 17 neighbors - right: 21, left: 11, bottom: 20, top: 14
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.196, dist2_std/mean=0.721)
+  Seed 17 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 18
+    initChessboard: Starting for seed 18, total corners: 51
+    initChessboard: Seed 18 direction vectors - v1: (0.998,0.057), v2: (0.243,0.970)
+    Debug: seed 18 neighbors - right: 25, left: 9, bottom: 19, top: 16
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 18 result: SUCCESS (initialization)
+  Energy check: seed 18 has energy -6.82581 (threshold: 0)
+  Growing chessboard from seed 18...
+    Growth iteration 1: energy -6.826 -> -9.101
+    Growth iteration 2: energy -9.101 -> -10.963
+  Final energy check: seed 18 has final energy -10.96330 (threshold: -10)
+  SUCCESS: seed 18 -> final_energy -10.96330 < -10
+  Attempting to initialize chessboard for seed 19
+    initChessboard: Starting for seed 19, total corners: 51
+    initChessboard: Seed 19 direction vectors - v1: (0.998,0.067), v2: (0.339,0.941)
+    Debug: seed 19 neighbors - right: 26, left: 12, bottom: 20, top: 18
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.046, dist2_std/mean=0.325)
+  Seed 19 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 20
+    initChessboard: Starting for seed 20, total corners: 51
+    initChessboard: Seed 20 direction vectors - v1: (0.999,0.048), v2: (0.412,0.911)
+    Debug: seed 20 neighbors - right: 27, left: 14, bottom: 21, top: 19
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.134, dist2_std/mean=0.338)
+  Seed 20 result: FAILED (initialization)
+Processing seed 21/51
+  Attempting to initialize chessboard for seed 21
+    initChessboard: Starting for seed 21, total corners: 51
+    initChessboard: Seed 21 direction vectors - v1: (0.998,0.058), v2: (0.475,0.880)
+    Debug: seed 21 neighbors - right: 28, left: 17, bottom: 27, top: 20
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.071, dist2_std/mean=0.868)
+  Seed 21 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 22
+    initChessboard: Starting for seed 22, total corners: 51
+    initChessboard: Seed 22 direction vectors - v1: (0.048,0.999), v2: (-0.999,0.052)
+    Debug: seed 22 neighbors - right: 23, left: 29, bottom: 15, top: 36
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.838, dist2_std/mean=1.556)
+  Seed 22 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 23
+    initChessboard: Starting for seed 23, total corners: 51
+    initChessboard: Seed 23 direction vectors - v1: (0.063,0.998), v2: (-0.997,0.077)
+    Debug: seed 23 neighbors - right: 24, left: 22, bottom: 13, top: 38
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 23 result: SUCCESS (initialization)
+  Energy check: seed 23 has energy -8.19795 (threshold: 0)
+  Growing chessboard from seed 23...
+    Growth iteration 1: energy -8.198 -> -10.518
+    Growth iteration 2: energy -10.518 -> -13.295
+    Growth iteration 3: energy -13.295 -> -16.551
+    Growth iteration 4: energy -16.551 -> -18.961
+    Growth iteration 5: energy -18.961 -> -22.645
+    Growth iteration 6: energy -22.645 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 23 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 23 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 24
+    initChessboard: Starting for seed 24, total corners: 51
+    initChessboard: Seed 24 direction vectors - v1: (0.063,0.998), v2: (-0.998,0.068)
+    Debug: seed 24 neighbors - right: 25, left: 23, bottom: 16, top: 40
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 24 result: SUCCESS (initialization)
+  Energy check: seed 24 has energy -7.88876 (threshold: 0)
+  Growing chessboard from seed 24...
+    Growth iteration 1: energy -7.889 -> -10.518
+    Growth iteration 2: energy -10.518 -> -13.295
+    Growth iteration 3: energy -13.295 -> -16.551
+    Growth iteration 4: energy -16.551 -> -18.961
+    Growth iteration 5: energy -18.961 -> -22.645
+    Growth iteration 6: energy -22.645 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 24 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 24 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 25
+    initChessboard: Starting for seed 25, total corners: 51
+    initChessboard: Seed 25 direction vectors - v1: (0.075,0.997), v2: (-0.998,0.062)
+    Debug: seed 25 neighbors - right: 26, left: 24, bottom: 18, top: 39
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.322, dist2_std/mean=0.086)
+  Seed 25 result: FAILED (initialization)
+Processing seed 26/51
+  Attempting to initialize chessboard for seed 26
+    initChessboard: Starting for seed 26, total corners: 51
+    initChessboard: Seed 26 direction vectors - v1: (0.064,0.998), v2: (-0.997,0.078)
+    Debug: seed 26 neighbors - right: 27, left: 25, bottom: 19, top: 37
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.351, dist2_std/mean=0.153)
+  Seed 26 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 27
+    initChessboard: Starting for seed 27, total corners: 51
+    initChessboard: Seed 27 direction vectors - v1: (0.089,0.996), v2: (-0.998,0.060)
+    Debug: seed 27 neighbors - right: 28, left: 26, bottom: 20, top: 35
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.324, dist2_std/mean=0.167)
+  Seed 27 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 28
+    initChessboard: Starting for seed 28, total corners: 51
+    initChessboard: Seed 28 direction vectors - v1: (0.066,0.998), v2: (-0.997,0.071)
+    Debug: seed 28 neighbors - right: 31, left: 27, bottom: 21, top: 34
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=1.136, dist2_std/mean=0.989)
+  Seed 28 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 29
+    initChessboard: Starting for seed 29, total corners: 51
+    initChessboard: Seed 29 direction vectors - v1: (0.989,0.149), v2: (-0.896,0.444)
+    Debug: seed 29 neighbors - right: 30, left: 22, bottom: 15, top: 32
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=1.398, dist2_std/mean=0.765)
+  Seed 29 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 30
+    initChessboard: Starting for seed 30, total corners: 51
+    initChessboard: Seed 30 direction vectors - v1: (0.987,0.159), v2: (-0.896,0.445)
+    Debug: seed 30 neighbors - right: 32, left: 29, bottom: 15, top: 33
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.863, dist2_std/mean=0.418)
+  Seed 30 result: FAILED (initialization)
+Processing seed 31/51
+  Attempting to initialize chessboard for seed 31
+    initChessboard: Starting for seed 31, total corners: 51
+    initChessboard: Seed 31 direction vectors - v1: (0.975,0.222), v2: (-0.985,0.170)
+    Debug: seed 31 neighbors - right: 34, left: 21, bottom: 28, top: 45
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.123, dist2_std/mean=0.596)
+  Seed 31 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 32
+    initChessboard: Starting for seed 32, total corners: 51
+    initChessboard: Seed 32 direction vectors - v1: (0.984,0.179), v2: (-0.906,0.423)
+    Debug: seed 32 neighbors - right: 33, left: 30, bottom: 29, top: 49
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.386, dist2_std/mean=0.500)
+  Seed 32 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 33
+    initChessboard: Starting for seed 33, total corners: 51
+    initChessboard: Seed 33 direction vectors - v1: (0.983,0.183), v2: (0.416,0.909)
+    Debug: seed 33 neighbors - right: 49, left: 32, bottom: 47, top: 30
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=1.266, dist2_std/mean=NaN)
+  Seed 33 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 34
+    initChessboard: Starting for seed 34, total corners: 51
+    initChessboard: Seed 34 direction vectors - v1: (-0.257,0.966), v2: (-0.987,0.163)
+    Debug: seed 34 neighbors - right: 31, left: 35, bottom: 28, top: 41
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.732, dist2_std/mean=0.954)
+  Seed 34 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 35
+    initChessboard: Starting for seed 35, total corners: 51
+    initChessboard: Seed 35 direction vectors - v1: (-0.251,0.968), v2: (-0.981,0.194)
+    Debug: seed 35 neighbors - right: 34, left: 37, bottom: 27, top: 42
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 35 result: SUCCESS (initialization)
+  Energy check: seed 35 has energy -6.96166 (threshold: 0)
+  Growing chessboard from seed 35...
+    Growth iteration 1: energy -6.962 -> -9.282
+    Growth iteration 2: energy -9.282 -> -12.077
+    Growth iteration 3: energy -12.077 -> -15.096
+    Growth iteration 4: energy -15.096 -> -18.871
+    Growth iteration 5: energy -18.871 -> -22.645
+    Growth iteration 6: energy -22.645 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 35 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 35 -> final_energy -31.39222 < -10
+Processing seed 36/51
+  Attempting to initialize chessboard for seed 36
+    initChessboard: Starting for seed 36, total corners: 51
+    initChessboard: Seed 36 direction vectors - v1: (0.998,0.067), v2: (0.217,0.976)
+    Debug: seed 36 neighbors - right: 43, left: 22, bottom: 38, top: 32
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.161, dist2_std/mean=0.739)
+  Seed 36 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 37
+    initChessboard: Starting for seed 37, total corners: 51
+    initChessboard: Seed 37 direction vectors - v1: (-0.166,0.986), v2: (-0.982,0.188)
+    Debug: seed 37 neighbors - right: 35, left: 39, bottom: 26, top: 44
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 37 result: SUCCESS (initialization)
+  Energy check: seed 37 has energy -6.79342 (threshold: 0)
+  Growing chessboard from seed 37...
+    Growth iteration 1: energy -6.793 -> -9.058
+    Growth iteration 2: energy -9.058 -> -12.077
+    Growth iteration 3: energy -12.077 -> -15.096
+    Growth iteration 4: energy -15.096 -> -18.871
+    Growth iteration 5: energy -18.871 -> -22.645
+    Growth iteration 6: energy -22.645 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 37 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 37 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 38
+    initChessboard: Starting for seed 38, total corners: 51
+    initChessboard: Seed 38 direction vectors - v1: (0.087,0.996), v2: (-1.000,0.028)
+    Debug: seed 38 neighbors - right: 40, left: 36, bottom: 23, top: 47
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 38 result: SUCCESS (initialization)
+  Energy check: seed 38 has energy -7.47829 (threshold: 0)
+  Growing chessboard from seed 38...
+    Growth iteration 1: energy -7.478 -> -9.971
+    Growth iteration 2: energy -9.971 -> -13.295
+    Growth iteration 3: energy -13.295 -> -16.551
+    Growth iteration 4: energy -16.551 -> -18.961
+    Growth iteration 5: energy -18.961 -> -22.645
+    Growth iteration 6: energy -22.645 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 38 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 38 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 39
+    initChessboard: Starting for seed 39, total corners: 51
+    initChessboard: Seed 39 direction vectors - v1: (-0.103,0.995), v2: (-0.981,0.192)
+    Debug: seed 39 neighbors - right: 37, left: 40, bottom: 25, top: 46
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 39 result: SUCCESS (initialization)
+  Energy check: seed 39 has energy -6.82581 (threshold: 0)
+  Growing chessboard from seed 39...
+    Growth iteration 1: energy -6.826 -> -9.101
+    Growth iteration 2: energy -9.101 -> -12.135
+    Growth iteration 3: energy -12.135 -> -15.168
+    Growth iteration 4: energy -15.168 -> -18.961
+    Growth iteration 5: energy -18.961 -> -22.645
+    Growth iteration 6: energy -22.645 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 39 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 39 -> final_energy -31.39222 < -10
+  Attempting to initialize chessboard for seed 40
+    initChessboard: Starting for seed 40, total corners: 51
+    initChessboard: Seed 40 direction vectors - v1: (0.005,1.000), v2: (-0.990,0.140)
+    Debug: seed 40 neighbors - right: 39, left: 38, bottom: 24, top: 48
+    initChessboard: SUCCESS - created valid 3x3 chessboard
+  Seed 40 result: SUCCESS (initialization)
+  Energy check: seed 40 has energy -7.47829 (threshold: 0)
+  Growing chessboard from seed 40...
+    Growth iteration 1: energy -7.478 -> -9.971
+    Growth iteration 2: energy -9.971 -> -13.295
+    Growth iteration 3: energy -13.295 -> -16.551
+    Growth iteration 4: energy -16.551 -> -18.961
+    Growth iteration 5: energy -18.961 -> -22.645
+    Growth iteration 6: energy -22.645 -> -26.908
+    Growth iteration 7: energy -26.908 -> -31.392
+  Final energy check: seed 40 has final energy -31.39222 (threshold: -10)
+  SUCCESS: seed 40 -> final_energy -31.39222 < -10
+Processing seed 41/51
+  Attempting to initialize chessboard for seed 41
+    initChessboard: Starting for seed 41, total corners: 51
+    initChessboard: Seed 41 direction vectors - v1: (-0.461,0.887), v2: (-0.947,0.320)
+    Debug: seed 41 neighbors - right: 35, left: 42, bottom: 34, top: 51
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=1.055, dist2_std/mean=0.418)
+  Seed 41 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 42
+    initChessboard: Starting for seed 42, total corners: 51
+    initChessboard: Seed 42 direction vectors - v1: (-0.371,0.929), v2: (-0.944,0.329)
+    Debug: seed 42 neighbors - right: 41, left: 44, bottom: 35, top: 51
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.006, dist2_std/mean=0.721)
+  Seed 42 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 43
+    initChessboard: Starting for seed 43, total corners: 51
+    initChessboard: Seed 43 direction vectors - v1: (0.988,0.152), v2: (0.241,0.970)
+    Debug: seed 43 neighbors - right: 47, left: 36, bottom: 48, top: 33
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.950, dist2_std/mean=0.533)
+  Seed 43 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 44
+    initChessboard: Starting for seed 44, total corners: 51
+    initChessboard: Seed 44 direction vectors - v1: (-0.253,0.967), v2: (-0.933,0.359)
+    Debug: seed 44 neighbors - right: 42, left: 46, bottom: 37, top: 51
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.095, dist2_std/mean=0.930)
+  Seed 44 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 45
+    initChessboard: Starting for seed 45, total corners: 51
+    initChessboard: Seed 45 direction vectors - v1: (-0.086,0.996), v2: (-0.875,0.484)
+    Debug: seed 45 neighbors - right: 31, left: 44, bottom: 41, top: 51
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.714, dist2_std/mean=0.574)
+  Seed 45 result: FAILED (initialization)
+Processing seed 46/51
+  Attempting to initialize chessboard for seed 46
+    initChessboard: Starting for seed 46, total corners: 51
+    initChessboard: Seed 46 direction vectors - v1: (-0.139,0.990), v2: (-0.948,0.317)
+    Debug: seed 46 neighbors - right: 44, left: 48, bottom: 39, top: 51
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.088, dist2_std/mean=1.020)
+  Seed 46 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 47
+    initChessboard: Starting for seed 47, total corners: 51
+    initChessboard: Seed 47 direction vectors - v1: (1.000,0.020), v2: (0.122,0.992)
+    Debug: seed 47 neighbors - right: 48, left: 38, bottom: 46, top: 43
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.978, dist2_std/mean=0.715)
+  Seed 47 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 48
+    initChessboard: Starting for seed 48, total corners: 51
+    initChessboard: Seed 48 direction vectors - v1: (-0.051,0.999), v2: (-0.978,0.209)
+    Debug: seed 48 neighbors - right: 46, left: 47, bottom: 40, top: 43
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=0.150, dist2_std/mean=0.881)
+  Seed 48 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 49
+    initChessboard: Starting for seed 49, total corners: 51
+    initChessboard: Seed 49 direction vectors - v1: (0.759,0.651), v2: (-0.003,1.000)
+    Debug: seed 49 neighbors - right: 50, left: 33, bottom: 47, top: 32
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=1.068, dist2_std/mean=0.657)
+  Seed 49 result: FAILED (initialization)
+  Attempting to initialize chessboard for seed 50
+    initChessboard: Starting for seed 50, total corners: 51
+    initChessboard: Seed 50 direction vectors - v1: (0.804,0.595), v2: (0.391,0.920)
+    Debug: seed 50 neighbors - right: 43, left: 49, bottom: 47, top: 33
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=1.134, dist2_std/mean=0.293)
+  Seed 50 result: FAILED (initialization)
+Processing seed 51/51
+  Attempting to initialize chessboard for seed 51
+    initChessboard: Starting for seed 51, total corners: 51
+    initChessboard: Seed 51 direction vectors - v1: (0.996,0.085), v2: (-0.716,0.698)
+    Debug: seed 51 neighbors - right: 1, left: 41, bottom: 45, top: 46
+    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=NaN, dist2_std/mean=0.865)
+  Seed 51 result: FAILED (initialization)
+
+=== MATLAB Structure Recovery Completed ===
+Processed: 51/51 corners
+Init failures: 37
+Energy rejected (init): 0 (threshold: 0)
+Energy rejected (final): 0 (threshold: -10)
+Found: 1 chessboards
+
+Chessboard detection completed in 121.615 ms
+Found 1 chessboards
+
+Chessboard 1:
+  Size: 7x6
+  Energy: -31.39222
+  Corner indices: 2 6 15 22 36 43 | 1 5 13 23 38 47 | 3 7 16 24 40 48 | 4 9 18 25 39 46 | 8 12 19 26 37 44 | 10 14 20 27 35 42 | 11 17 21 28 34 41 
+  Corner positions:
+    Row 1: (46.3,289.3) (83.9,271.9) (143.5,254.0) (223.0,241.4) (304.5,242.1) (367.1,250.4) 
+    Row 2: (41.4,349.1) (78.2,341.7) (140.4,332.2) (228.7,323.3) (318.0,319.0) (381.8,319.1) 
+    Row 3: (47.6,412.0) (85.4,417.0) (148.3,420.3) (235.6,417.6) (322.9,407.2) (385.2,394.5) 
+    Row 4: (63.6,467.5) (103.4,480.5) (164.1,490.5) (241.6,491.1) (318.4,478.7) (377.0,459.9) 
+    Row 5: (84.0,509.9) (124.5,524.8) (180.0,534.8) (245.5,536.0) (310.4,525.3) (364.0,506.9) 
+    Row 6: (103.7,540.4) (143.2,554.2) (192.4,562.6) (247.8,563.2) (302.7,554.8) (350.4,538.9) 
+    Row 7: (121.6,562.3) (158.1,573.3) (202.2,579.6) (249.3,580.3) (296.4,573.3) (338.7,560.4) 
+
+=== SUMMARY ===
+Total processing time: 661.806 ms
+Corner detection: 51 corners
+Chessboard detection: 1 chessboards
+Result matches C++ target: YES
+Batch mode: skipping figure display
+MATLAB: corners.p (0-based):
+   40.3599  348.1476
+   45.3355  288.3325
+   46.5637  410.9816
+   62.6490  466.4521
+   77.2309  340.6792
+   82.8824  270.9260
+   84.3529  416.0387
+   82.9709  508.8546
+  102.3991  479.5146
+  102.6608  539.4046
+  120.5820  561.2764
+  123.5043  523.8073
+  139.3998  331.1994
+  142.2337  553.2341
+  142.4621  253.0126
+  147.3395  419.3271
+  157.0932  572.2521
+  163.0697  489.4924
+  178.9852  533.7992
+  191.3587  561.5743
+  201.2264  578.6247
+  222.0352  240.4061
+  227.7031  322.3327
+  234.6288  416.5814
+  240.5741  490.0804
+  244.4792  534.9565
+  246.8072  562.1638
+  248.2939  579.3214
+  259.0437  101.8429
+  261.9337  102.5173
+  275.0133  637.9255
+  273.5344  105.3163
+  280.5500  106.9082
+  295.3789  572.2557
+  301.7080  553.7629
+  303.4755  241.0647
+  309.3614  524.2644
+  316.9963  317.9868
+  317.3595  477.6914
+  321.9311  406.1919
+  337.7021  559.4495
+  349.4177  537.9149
+  366.0893  249.4255
+  362.9961  505.9249
+  369.3868  599.3746
+  375.9873  458.8641
+  380.7840  318.1018
+  384.1565  393.5340
+  399.8250  122.0888
+  407.7593  140.0390
+  422.1808  561.1201
+
+MATLAB: board 1 corner indices (0-based):
+  Columns 1 through 13
+
+     1     0     2     3     7     9    10     5     4     6     8    11    13
+
+  Columns 14 through 26
+
+    16    14    12    15    17    18    19    20    21    22    23    24    25
+
+  Columns 27 through 39
+
+    26    27    35    37    39    38    36    34    33    42    46    47    45
+
+  Columns 40 through 42
+
+    43    41    40
+
+
+=== SAVING DEBUG DATA ===
+Debug data saved to matlab_debug_results.mat
