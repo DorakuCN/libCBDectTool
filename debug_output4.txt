@@ -1,0 +1,86 @@
+==================================
+libcbdetect C++ Demo
+Version: 1.0.0
+==================================
+Processing image: data/04.png
+Image loaded successfully (480x752)
+Detection method: Template Matching (Fast)
+Corner type: Saddle Point
+Detecting chessboards...
+Starting chessboard detection...
+Starting multi-scale corner detection...
+Corner detection using template matching (fast)...
+Extracted 630 corner candidates
+Refining corners (simplified implementation)...
+[Correlation Scoring] Scored 630 corners
+Original scale (480x752): 630 corners
+Corner detection using template matching (fast)...
+Extracted 246 corner candidates
+Refining corners (simplified implementation)...
+[Correlation Scoring] Scored 246 corners
+Small scale (240x376): 246 corners
+[Zero Crossing Filter] 8/673 corners passed filter (1.18871%)
+After merging: 8 corners
+Found 8 corner candidates
+Structure recovery with adaptive strictness:
+  Energy thresholds: init=0, final=-10 (MATLAB/Sample standard)
+  Max processing time: 30s
+  1/8 (found: 0, energy_rej: 0, init_fail: 0)
+  Attempting to initialize chessboard for seed 0
+    initChessboard: Starting for seed 0, total corners: 8
+    initChessboard: FAIL - insufficient corners or invalid seed (8 < 9 or seed 0 invalid)
+  Seed 0 result: FAILED
+  Attempting to initialize chessboard for seed 1
+    initChessboard: Starting for seed 1, total corners: 8
+    initChessboard: FAIL - insufficient corners or invalid seed (8 < 9 or seed 1 invalid)
+  Seed 1 result: FAILED
+  Attempting to initialize chessboard for seed 2
+    initChessboard: Starting for seed 2, total corners: 8
+    initChessboard: FAIL - insufficient corners or invalid seed (8 < 9 or seed 2 invalid)
+  Seed 2 result: FAILED
+  Attempting to initialize chessboard for seed 3
+    initChessboard: Starting for seed 3, total corners: 8
+    initChessboard: FAIL - insufficient corners or invalid seed (8 < 9 or seed 3 invalid)
+  Seed 3 result: FAILED
+  Attempting to initialize chessboard for seed 4
+    initChessboard: Starting for seed 4, total corners: 8
+    initChessboard: FAIL - insufficient corners or invalid seed (8 < 9 or seed 4 invalid)
+  Seed 4 result: FAILED
+  Attempting to initialize chessboard for seed 5
+    initChessboard: Starting for seed 5, total corners: 8
+    initChessboard: FAIL - insufficient corners or invalid seed (8 < 9 or seed 5 invalid)
+  Seed 5 result: FAILED
+  Attempting to initialize chessboard for seed 6
+    initChessboard: Starting for seed 6, total corners: 8
+    initChessboard: FAIL - insufficient corners or invalid seed (8 < 9 or seed 6 invalid)
+  Seed 6 result: FAILED
+  Attempting to initialize chessboard for seed 7
+    initChessboard: Starting for seed 7, total corners: 8
+    initChessboard: FAIL - insufficient corners or invalid seed (8 < 9 or seed 7 invalid)
+  Seed 7 result: FAILED
+Structure recovery completed:
+  Processed: 8/8 corners
+  Init failures: 8
+  Energy rejected: 0 (thresholds: 0/-10)
+  Found: 0 chessboards (sample target: 1)
+  Time: 0 ms
+  ANALYSIS: No chessboards found - need to further relax energy threshold
+Reconstructed 0 chessboards
+Detection completed in 166.276 ms
+Starting multi-scale corner detection...
+Corner detection using template matching (fast)...
+Extracted 630 corner candidates
+Refining corners (simplified implementation)...
+[Correlation Scoring] Scored 630 corners
+Original scale (480x752): 630 corners
+Corner detection using template matching (fast)...
+Extracted 246 corner candidates
+Refining corners (simplified implementation)...
+[Correlation Scoring] Scored 246 corners
+Small scale (240x376): 246 corners
+[Zero Crossing Filter] 8/673 corners passed filter (1.18871%)
+After merging: 8 corners
+Detected 8 corners
+Detected 0 chessboards
+Result saved to: result/04.png
+Press any key to exit...

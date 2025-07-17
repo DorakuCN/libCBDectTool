@@ -40,6 +40,20 @@ make -j4
 
 # Use custom image
 ./demo /path/to/your/image.png
+
+# Use Pipeline API demo (with polynomial refinement)
+./pipeline_demo /path/to/your/image.png
+```
+
+The library also provides a high-level `Pipeline` API that mirrors the features
+of the original PyCBD project. It automatically refines detected corners using a
+polynomial model:
+
+```cpp
+#include "cbdetect/pipeline.h"
+
+cbdetect::Pipeline pipeline;
+auto [result, board_uv, board_xy] = pipeline.detect(image);
 ```
 
 ## 🏗️ Architecture
@@ -50,6 +64,7 @@ make -j4
 - **CorrelationScoring**: High-precision corner scoring
 - **TemplateMatching**: Multi-scale corner detection
 - **StructureRecovery**: Chessboard reconstruction
+- **Pipeline**: High-level detection with optional polynomial refinement
 
 ### Algorithm Pipeline
 ```
@@ -66,12 +81,15 @@ libcbdetect/
 │   ├── chessboard_detector.h
 │   ├── corner.h
 │   ├── zero_crossing_filter.h
-│   └── correlation_scoring.h
+│   ├── correlation_scoring.h
+│   └── pipeline.h
 ├── src/                       # Source files
 │   ├── chessboard_detector.cpp
 │   ├── zero_crossing_filter.cpp
 │   ├── correlation_scoring.cpp
-│   └── demo.cpp
+│   ├── pipeline.cpp
+│   ├── demo.cpp
+│   └── pipeline_demo.cpp
 ├── data/                      # Test images
 ├── result/                    # Output images
 ├── CMakeLists.txt

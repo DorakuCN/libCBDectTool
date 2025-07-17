@@ -1,4 +1,7 @@
-% Copyright 2012. All rights reserved.
+% 
+
+
+opyright 2012. All rights reserved.
 % Author: Andreas Geiger
 %         Institute of Measurement and Control Systems (MRT)
 %         Karlsruhe Institute of Technology (KIT), Germany

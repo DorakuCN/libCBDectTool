@@ -2,6 +2,7 @@
 #include "cbdetect/corner_scoring.h"
 #include "cbdetect/zero_crossing_filter.h"
 #include "cbdetect/correlation_scoring.h"
+#include "cbdetect/subpixel_refinement.h"
 #include <iostream>
 #include <cmath>
 #include <memory>
@@ -57,6 +58,8 @@ Corners ChessboardDetector::findCorners(const cv::Mat& image) {
 }
 
 Corners ChessboardDetector::findCornersAtScale(const cv::Mat& image, double scale) {
+    std::cout << "\n=== C++ Corner Detection Debug (scale=" << scale << ") ===" << std::endl;
+    
     // Preprocess image
     preprocessImage(image);
     
@@ -64,10 +67,20 @@ Corners ChessboardDetector::findCornersAtScale(const cv::Mat& image, double scal
     computeGradients();
     
     // Detect corner candidates using template matching
-    detectCornerCandidates();
-    
-    // Extract corners from response map
-    Corners corners = extractCorners();
+          // Use libcdetSample-style corner detection
+      std::vector<cv::Point2d> corner_points = detectCorners(image);
+      
+      // Convert to Corners structure
+      Corners corners;
+      for (const auto& pt : corner_points) {
+          Corner corner;
+          corner.pt = pt;
+          corner.quality_score = 1.0;  // Will be computed later
+          corner.v1 = cv::Vec2d(0, 0); // Will be computed later
+          corner.v2 = cv::Vec2d(0, 0); // Will be computed later
+          corners.push_back(corner);
+      }
+    std::cout << "Initial corner candidates from NMS: " << corners.size() << std::endl;
     
     // Scale corner coordinates back to original image if needed
     if (scale != 1.0) {
@@ -79,22 +92,96 @@ Corners ChessboardDetector::findCornersAtScale(const cv::Mat& image, double scal
     
     // Refine corners to subpixel accuracy
     if (params_.refine_corners) {
-        refineCorners(corners);
+        size_t corners_before_refine = corners.size();
+        cbdetect::refineCorners(img_gray_, corners);  // Use subpixel refinement function
+        std::cout << "After subpixel refinement: " << corners.size() 
+                  << " corners (removed " << (corners_before_refine - corners.size()) << " invalid)" << std::endl;
     }
     
-    // Score corners using Sample版本的高精度相关性评分算法
-    CorrelationScoring correlation_scorer;
-    correlation_scorer.scoreCorners(img_gray_, img_weight_, corners);
+    // Compute direction vectors from gradients (critical for structure recovery)
+    if (params_.polynomial_fit) {
+        std::cout << "Computing direction vectors..." << std::endl;
+        this->refineCorners(corners);  // Use member function for direction vector computation
+        std::cout << "Direction vectors computed for " << corners.size() << " corners" << std::endl;
+        
+        // Apply polynomial fit validation (libcdetSample's key step)
+        std::cout << "Applying polynomial fit validation..." << std::endl;
+        size_t before_polyfit = corners.size();
+        polynomialFitValidation(corners);
+        std::cout << "Polynomial fit: " << corners.size() << " corners passed validation (removed " 
+                  << (before_polyfit - corners.size()) << " invalid)" << std::endl;
+    } else {
+        std::cout << "Computing basic direction vectors from gradients..." << std::endl;
+        // Basic direction vector computation even when polynomial_fit is disabled
+        for (auto& corner : corners) {
+            int x = static_cast<int>(corner.pt.x);
+            int y = static_cast<int>(corner.pt.y);
+            
+            if (x > 0 && x < img_du_.cols - 1 && y > 0 && y < img_du_.rows - 1) {
+                double angle = img_angle_.at<double>(y, x);
+                corner.v1 = cv::Vec2d(std::cos(angle), std::sin(angle));
+                corner.v2 = cv::Vec2d(-std::sin(angle), std::cos(angle));
+            } else {
+                corner.v1 = cv::Vec2d(1, 0);
+                corner.v2 = cv::Vec2d(0, 1);
+            }
+        }
+        std::cout << "Basic direction vectors computed for " << corners.size() << " corners" << std::endl;
+    }
+    
+    // Score corners using template matching response (simple but effective)
+    std::cout << "Scoring corners..." << std::endl;
+    cbdetect::scoreCorners(corners, img_gray_, img_weight_);
+    
+    // 显示评分统计
+    if (!corners.empty()) {
+        std::vector<double> scores;
+        for (const auto& corner : corners) {
+            scores.push_back(corner.quality_score);
+        }
+        std::sort(scores.begin(), scores.end());
+        
+        double min_score = scores.front();
+        double max_score = scores.back();
+        double mean_score = std::accumulate(scores.begin(), scores.end(), 0.0) / scores.size();
+        double median_score = scores[scores.size()/2];
+        
+        std::cout << "Score statistics: min=" << std::fixed << std::setprecision(4) << min_score 
+                  << ", max=" << max_score << ", mean=" << mean_score << ", median=" << median_score << std::endl;
+        std::cout << "Score threshold: " << params_.corner_threshold << std::endl;
+    }
+    
+    // Filter by score threshold
+    size_t corners_before_score_filter = corners.size();
+    corners.filterByScore(params_.corner_threshold);
+    size_t num_below_threshold = corners_before_score_filter - corners.size();
+    
+    std::cout << "After score filter (threshold=" << params_.corner_threshold << "): " 
+              << corners.size() << " corners (removed " << num_below_threshold << " below threshold)" << std::endl;
+    std::cout << "Final corner detection result: " << corners.size() << " corners" << std::endl;
     
     return corners;
 }
 
 Corners ChessboardDetector::mergeMultiScaleCorners(const Corners& corners_orig, 
                                                   const Corners& corners_small) {
+    std::cout << "\n=== C++ Multi-scale Corner Merging Debug ===" << std::endl;
+    std::cout << "Original scale corners: " << corners_orig.size() << std::endl;
+    std::cout << "Small scale corners: " << corners_small.size() << std::endl;
+    
+    // Debug: print first few corner coordinates
+    std::cout << "Original scale first 5 corners:" << std::endl;
+    for (size_t i = 0; i < std::min(size_t(5), corners_orig.size()); ++i) {
+        std::cout << "  Corner " << i << ": (" << std::fixed << std::setprecision(2) 
+                  << corners_orig[i].pt.x << ", " << corners_orig[i].pt.y 
+                  << "), score=" << corners_orig[i].quality_score << std::endl;
+    }
+    
     Corners merged_corners = corners_orig;
     
     // Add corners from small scale that are not too close to existing ones
     const double min_merge_distance = 5.0;  // Minimum distance for merging
+    int added_from_small = 0;
     
     for (const auto& small_corner : corners_small) {
         bool too_close = false;
@@ -114,15 +201,26 @@ Corners ChessboardDetector::mergeMultiScaleCorners(const Corners& corners_orig,
         // Add if not too close to existing corners
         if (!too_close) {
             merged_corners.push_back(small_corner);
+            added_from_small++;
         }
     }
     
-    // Apply Sample版本的零交叉过滤 (关键！实现95%+过滤精度)
-    ZeroCrossingFilter zero_crossing_filter;
-    zero_crossing_filter.filter(img_gray_, img_angle_, img_weight_, merged_corners);
+    std::cout << "Added " << added_from_small << " corners from small scale" << std::endl;
+    std::cout << "Total before zero crossing filter: " << merged_corners.size() << std::endl;
     
-    // Apply multi-stage strict filtering to merged result (target: 95% filter rate) 
+    // Debug: print merged corners coordinates to compare with MATLAB
+    std::cout << "Merged corners first 10 coordinates (C++ 0-based):" << std::endl;
+    for (size_t i = 0; i < std::min(size_t(10), merged_corners.size()); ++i) {
+        std::cout << "  " << i << ": (" << std::fixed << std::setprecision(2) 
+                  << merged_corners[i].pt.x << ", " << merged_corners[i].pt.y << ")" << std::endl;
+    }
+    
+    // TEMPORARILY DISABLE zero crossing filter to focus on core detection issues
+    std::cout << "Zero crossing filter DISABLED for debugging - keeping " << merged_corners.size() << " corners" << std::endl;
+
     ::cbdetect::filterCorners(merged_corners, params_);
+    
+    std::cout << "Final corners after all filtering: " << merged_corners.size() << std::endl;
     
     return merged_corners;
 }
@@ -145,9 +243,9 @@ Chessboards ChessboardDetector::recoverStructure(const Corners& corners) {
     int energy_rejected = 0;  // 因能量阈值被拒绝的数量
     int init_failed = 0;     // initChessboard失败的数量
     
-    // 使用经过调整的能量阈值 (基于实验结果)
+    // 使用MATLAB版本的能量阈值
     const double ENERGY_THRESHOLD_INIT = 0.0;      // MATLAB初始化阈值
-    const double ENERGY_THRESHOLD_FINAL = -3.0;    // 调整后的阈值 (介于-2.0成功经验和-6.0标准之间)
+    const double ENERGY_THRESHOLD_FINAL = -6.0;   // 放宽最终阈值：从-10改为-6.0
     
     std::cout << "  Energy thresholds: init=" << ENERGY_THRESHOLD_INIT 
               << ", final=" << ENERGY_THRESHOLD_FINAL << " (MATLAB/Sample standard)" << std::endl;
@@ -169,7 +267,11 @@ Chessboards ChessboardDetector::recoverStructure(const Corners& corners) {
         }
         
         // Initialize 3x3 chessboard from seed i
+        std::cout << "  Attempting to initialize chessboard for seed " << i << std::endl;
+        std::cout.flush();  // 确保输出立即显示
         Chessboard chessboard = initChessboard(corners, static_cast<int>(i));
+        std::cout << "  Seed " << i << " result: " << (chessboard.empty() ? "FAILED" : "SUCCESS") << std::endl;
+        std::cout.flush();
         
         // Check if this is a useful initial guess
         if (chessboard.empty()) {
@@ -180,7 +282,12 @@ Chessboards ChessboardDetector::recoverStructure(const Corners& corners) {
         
         // 初始化能量检查 (MATLAB标准: >0 被拒绝)
         float init_energy = computeChessboardEnergy(chessboard, corners);
+        std::cout << "  Energy check: seed " << i << " has energy " << init_energy << " (threshold: " << ENERGY_THRESHOLD_INIT << ")" << std::endl;
+        std::cout.flush();
+        
         if (init_energy > ENERGY_THRESHOLD_INIT) {
+            std::cout << "  REJECTED by energy: " << init_energy << " > " << ENERGY_THRESHOLD_INIT << std::endl;
+            std::cout.flush();
             energy_rejected++;
             processed_count++;
             continue;
@@ -191,13 +298,19 @@ Chessboards ChessboardDetector::recoverStructure(const Corners& corners) {
         
         // 最终质量检查 (更严格的阈值)
         float final_energy = computeChessboardEnergy(chessboard, corners);
+        std::cout << "  Final energy check: seed " << i << " has final energy " << final_energy << " (threshold: " << ENERGY_THRESHOLD_FINAL << ")" << std::endl;
+        std::cout.flush();
+        
         if (final_energy > ENERGY_THRESHOLD_FINAL) {
+            std::cout << "  FINAL REJECTED by energy: " << final_energy << " > " << ENERGY_THRESHOLD_FINAL << std::endl;
+            std::cout.flush();
             energy_rejected++;
             processed_count++;
             continue;
         }
         
         // 通过所有检查，接受这个棋盘格
+        chessboard.energy = final_energy;  // 设置能量值
         chessboards.push_back(chessboard);
         success_count++;
         
@@ -229,7 +342,10 @@ Chessboards ChessboardDetector::recoverStructure(const Corners& corners) {
     } else if (chessboards.size() == 1) {
         std::cout << "  PERFECT: Found exactly 1 chessboard (matches sample result!)" << std::endl;
     } else {
-        std::cout << "  GOOD: Found " << chessboards.size() << " chessboards - may need post-filtering" << std::endl;
+        std::cout << "  GOOD: Found " << chessboards.size() << " chessboards - applying post-filtering" << std::endl;
+        // 后处理：去除重复和低质量的棋盘格
+        filterDuplicateChessboards(chessboards, corners);
+        std::cout << "  After post-filtering: " << chessboards.size() << " chessboards" << std::endl;
     }
     
     return chessboards;
@@ -306,68 +422,229 @@ void ChessboardDetector::preprocessImage(const cv::Mat& image) {
         img_gray_ = image.clone();
     }
     
-    // Convert to double and normalize
-    img_gray_.convertTo(img_gray_, CV_64F);
+    // Convert to double with proper scaling (libcdetSample method)
+    img_gray_.convertTo(img_gray_, CV_64F, 1.0 / 255.0, 0);
+    
+    // Apply libcdetSample-style normalization if enabled
     if (params_.normalize_image) {
-        cv::normalize(img_gray_, img_gray_, 0.0, 1.0, cv::NORM_MINMAX);
+        // Box filter for background subtraction
+        cv::Mat blur_img;
+        int kernel_size = params_.norm_half_kernel_size;
+        cv::Mat kernel = cv::Mat::ones(2 * kernel_size + 1, 2 * kernel_size + 1, CV_64F) / ((2 * kernel_size + 1) * (2 * kernel_size + 1));
+        cv::filter2D(img_gray_, blur_img, -1, kernel, cv::Point(-1, -1), 0, cv::BORDER_REFLECT);
+        
+        // Background subtraction and contrast enhancement (libcdetSample method)
+        img_gray_ = img_gray_ - blur_img;
+        img_gray_ = 2.5 * (cv::max(cv::min(img_gray_ + 0.2, 0.4), 0.0));
+        
+        // Final scaling
+        double img_min, img_max;
+        cv::minMaxLoc(img_gray_, &img_min, &img_max);
+        if (img_max > img_min) {
+            img_gray_ = (img_gray_ - img_min) / (img_max - img_min);
+        }
     }
 }
 
 void ChessboardDetector::computeGradients() {
-    // Sobel kernels
-    cv::Mat sobel_x = (cv::Mat_<double>(3, 3) << -1, 0, 1, -1, 0, 1, -1, 0, 1);
-    cv::Mat sobel_y = (cv::Mat_<double>(3, 3) << -1, -1, -1, 0, 0, 0, 1, 1, 1);
+    // Use libcdetSample's proven Sobel kernels
+    cv::Mat sobel_x = (cv::Mat_<double>(3, 3) << 1, 0, -1, 2, 0, -2, 1, 0, -1);
+    cv::Mat sobel_y = (cv::Mat_<double>(3, 3) << 1, 2, 1, 0, 0, 0, -1, -2, -1);
     
-    // Compute gradients
-    cv::filter2D(img_gray_, img_du_, -1, sobel_x);
-    cv::filter2D(img_gray_, img_dv_, -1, sobel_y);
+    // Compute gradients with proper border handling
+    cv::filter2D(img_gray_, img_du_, -1, sobel_x, cv::Point(-1, -1), 0, cv::BORDER_REFLECT);
+    cv::filter2D(img_gray_, img_dv_, -1, sobel_y, cv::Point(-1, -1), 0, cv::BORDER_REFLECT);
     
-    // Compute gradient magnitude and angle
+    // Compute gradient magnitude and angle (safer approach)
     cv::magnitude(img_du_, img_dv_, img_weight_);
     cv::phase(img_du_, img_dv_, img_angle_);
     
-    // Correct angle to be in [0, pi]
-    img_angle_ = img_angle_ / 2.0;
+    // Normalize angle to [0, π] as in libcdetSample
+    img_angle_.forEach<double>([](double& pixel, const int* pos) -> void {
+        if (pixel >= M_PI) pixel -= M_PI;
+        if (pixel < 0) pixel += M_PI;
+    });
 }
 
-void ChessboardDetector::detectCornerCandidates() {
-    // Initialize corner response map
-    img_corners_ = cv::Mat::zeros(img_gray_.size(), CV_64F);
+std::vector<cv::Point2d> ChessboardDetector::detectCorners(const cv::Mat& image) {
+    // Use libcdetSample-style get_init_location algorithm
+    std::vector<cv::Point2d> corner_points;
     
-    if (params_.show_processing) {
-        std::cout << "Corner detection using " << 
-            (params_.detect_method == DetectMethod::TEMPLATE_MATCH_FAST ? "template matching (fast)" :
-             params_.detect_method == DetectMethod::TEMPLATE_MATCH_SLOW ? "template matching (slow)" :
-             params_.detect_method == DetectMethod::HESSIAN_RESPONSE ? "Hessian response" :
-             params_.detect_method == DetectMethod::LOCALIZED_RADON_TRANSFORM ? "Radon transform" :
-             "Harris corners") << "..." << std::endl;
+    // Template matching parameters (from libcdetSample)
+    std::vector<double> template_props = {
+        0, M_PI_2,           // 0°, 90° 
+        M_PI_4, -M_PI_4,     // 45°, -45°
+        0, M_PI_4,           // 0°, 45°
+        0, -M_PI_4,          // 0°, -45°
+        M_PI_4, M_PI_2,      // 45°, 90°
+        -M_PI_4, M_PI_2      // -45°, 90°
+    };
+    
+    // Multi-scale detection using different radii
+    std::vector<int> radii = {4, 6, 8, 10, 12};
+    
+    for (int radius : radii) {
+        cv::Mat img_corners = cv::Mat::zeros(img_gray_.size(), CV_64F);
+        
+        // Process template pairs (libcdetSample method)
+        for (size_t i = 0; i < template_props.size(); i += 2) {
+            double angle1 = template_props[i];
+            double angle2 = template_props[i + 1];
+            
+            // Create correlation templates
+            std::vector<cv::Mat> templates(4);
+            createCorrelationPatch(templates, angle1, angle2, radius);
+            
+            // Apply templates to image
+            cv::Mat resp_a1, resp_a2, resp_b1, resp_b2;
+            cv::filter2D(img_gray_, resp_a1, -1, templates[0], cv::Point(-1, -1), 0, cv::BORDER_REPLICATE);
+            cv::filter2D(img_gray_, resp_a2, -1, templates[1], cv::Point(-1, -1), 0, cv::BORDER_REPLICATE);
+            cv::filter2D(img_gray_, resp_b1, -1, templates[2], cv::Point(-1, -1), 0, cv::BORDER_REPLICATE);
+            cv::filter2D(img_gray_, resp_b2, -1, templates[3], cv::Point(-1, -1), 0, cv::BORDER_REPLICATE);
+            
+            // Compute mean response
+            cv::Mat mean_resp = (resp_a1 + resp_a2 + resp_b1 + resp_b2) / 4.0;
+            
+            // Case 1: a=white, b=black
+            cv::Mat min_a = cv::min(resp_a1, resp_a2) - mean_resp;
+            cv::Mat max_b = mean_resp - cv::max(resp_b1, resp_b2);
+            cv::Mat score1 = cv::min(min_a, max_b);
+            
+            // Case 2: b=white, a=black  
+            min_a = mean_resp - cv::max(resp_a1, resp_a2);
+            max_b = cv::min(resp_b1, resp_b2) - mean_resp;
+            cv::Mat score2 = cv::min(min_a, max_b);
+            
+            // Combine responses
+            cv::Mat combined = cv::max(score1, score2);
+            img_corners = cv::max(img_corners, combined);
+        }
+        
+        // Non-maximum suppression for this scale (use more strict threshold)
+        double nms_threshold = 0.1;  // Higher threshold for better quality
+        std::vector<cv::Point2d> scale_corners = applyNonMaximumSuppression(
+            img_corners, radius, nms_threshold
+        );
+        
+        // Add radius information and merge with results
+        for (const auto& pt : scale_corners) {
+            corner_points.push_back(pt);
+        }
     }
     
-    switch (params_.detect_method) {
-        case DetectMethod::TEMPLATE_MATCH_FAST:
-        case DetectMethod::TEMPLATE_MATCH_SLOW:
-            img_corners_ = template_detector_->detectCorners(img_gray_, params_.template_radii);
-            break;
-            
-        case DetectMethod::HESSIAN_RESPONSE:
-            img_corners_ = hessian_detector_->detectCorners(img_gray_);
-            break;
-            
-        case DetectMethod::LOCALIZED_RADON_TRANSFORM:
-            std::cout << "Radon transform not yet implemented, falling back to template matching" << std::endl;
-            img_corners_ = template_detector_->detectCorners(img_gray_, params_.template_radii);
-            break;
-            
-        default: // HARRIS_CORNER
-            cv::Mat corners_temp;
-            cv::cornerHarris(img_gray_, corners_temp, 2, 3, 0.04);
-            corners_temp.copyTo(img_corners_);
-            break;
+    std::cout << "libcdetSample-style detection found " << corner_points.size() << " corner candidates" << std::endl;
+    return corner_points;
+}
+
+void ChessboardDetector::createCorrelationPatch(std::vector<cv::Mat>& templates, double angle1, double angle2, int radius) {
+    // Create 4 correlation patches using libcdetSample's exact method
+    templates.resize(4);
+    int width = radius * 2 + 1;
+    int height = radius * 2 + 1;
+    
+    // Initialize templates
+    for (int i = 0; i < 4; ++i) {
+        templates[i] = cv::Mat::zeros(height, width, CV_64F);
     }
+    
+    // Midpoint (libcdetSample uses 1-based indexing)
+    int mu = radius + 1;
+    int mv = radius + 1;
+    
+    // Compute normals from angles (key difference!)
+    double n1[2] = {-std::sin(angle1), std::cos(angle1)};
+    double n2[2] = {-std::sin(angle2), std::cos(angle2)};
+    
+    // For all points in template
+    for (int u = 0; u < width; ++u) {
+        for (int v = 0; v < height; ++v) {
+            // Vector from center (1-based indexing like libcdetSample)
+            int vec[2] = {u + 1 - mu, v + 1 - mv};
+            double dist = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1]);
+            
+            // Check on which side of the normals we are
+            double s1 = vec[0] * n1[0] + vec[1] * n1[1];
+            double s2 = vec[0] * n2[0] + vec[1] * n2[1];
+            
+            if (dist <= radius) {
+                if (s1 <= -0.1 && s2 <= -0.1) {
+                    templates[0].at<double>(v, u) = 1.0;  // template_kernel[0]
+                } else if (s1 >= 0.1 && s2 >= 0.1) {
+                    templates[1].at<double>(v, u) = 1.0;  // template_kernel[1] 
+                } else if (s1 <= -0.1 && s2 >= 0.1) {
+                    templates[2].at<double>(v, u) = 1.0;  // template_kernel[2]
+                } else if (s1 >= 0.1 && s2 <= -0.1) {
+                    templates[3].at<double>(v, u) = 1.0;  // template_kernel[3]
+                }
+            }
+        }
+    }
+    
+    // Normalize templates (libcdetSample method)
+    for (int i = 0; i < 4; ++i) {
+        double sum = cv::sum(templates[i])[0];
+        if (sum > 1e-5) {
+            templates[i] /= sum;
+        }
+    }
+}
+
+std::vector<cv::Point2d> ChessboardDetector::applyNonMaximumSuppression(const cv::Mat& corner_map, int radius, double threshold) {
+    std::vector<cv::Point2d> corners;
+    
+    int step = radius + 1;
+    int margin = radius;
+    
+    for (int y = margin; y < corner_map.rows - margin; y += step) {
+        for (int x = margin; x < corner_map.cols - margin; x += step) {
+            // Find maximum in current window
+            double max_val = corner_map.at<double>(y, x);
+            int max_x = x, max_y = y;
+            
+            for (int dy = 0; dy <= step && y + dy < corner_map.rows - margin; ++dy) {
+                for (int dx = 0; dx <= step && x + dx < corner_map.cols - margin; ++dx) {
+                    double val = corner_map.at<double>(y + dy, x + dx);
+                    if (val > max_val) {
+                        max_val = val;
+                        max_x = x + dx;
+                        max_y = y + dy;
+                    }
+                }
+            }
+            
+            if (max_val > threshold) {
+                // Verify it's a local maximum
+                bool is_maximum = true;
+                for (int dy = -radius; dy <= radius && is_maximum; ++dy) {
+                    for (int dx = -radius; dx <= radius && is_maximum; ++dx) {
+                        int check_y = max_y + dy;
+                        int check_x = max_x + dx;
+                        if (check_y >= 0 && check_y < corner_map.rows && 
+                            check_x >= 0 && check_x < corner_map.cols) {
+                            if (corner_map.at<double>(check_y, check_x) > max_val) {
+                                is_maximum = false;
+                            }
+                        }
+                    }
+                }
+                
+                if (is_maximum) {
+                    corners.emplace_back(max_x, max_y);
+                }
+            }
+        }
+    }
+    
+    return corners;
 }
 
 Corners ChessboardDetector::extractCorners() {
     Corners corners;
+    
+    std::cout << "Non-maximum suppression parameters:" << std::endl;
+    std::cout << "  - NMS radius: " << params_.nms_radius << std::endl;
+    std::cout << "  - NMS threshold: " << params_.nms_threshold << std::endl;
+    std::cout << "  - NMS margin: " << params_.nms_margin << std::endl;
     
     // Use improved non-maximum suppression
     std::vector<cv::Point2d> corner_points = NonMaximumSuppression::apply(
@@ -376,6 +653,12 @@ Corners ChessboardDetector::extractCorners() {
         params_.nms_threshold, 
         params_.nms_margin
     );
+    
+    // Limit corner candidates to prevent memory issues (temporary fix)
+    if (corner_points.size() > 500) {
+        corner_points.resize(500);
+        std::cout << "Limited corner candidates to 500 for stability" << std::endl;
+    }
     
     if (params_.show_processing) {
         std::cout << "Extracted " << corner_points.size() << " corner candidates" << std::endl;
@@ -423,10 +706,176 @@ Corners ChessboardDetector::extractCorners() {
     return corners;
 }
 
+void ChessboardDetector::polynomialFitValidation(Corners& corners) {
+    // Implement libcdetSample's polynomial fit validation for saddle points
+    int max_iteration = 5;
+    double eps = 0.01;
+    int radius = 8;  // Use reasonable radius
+    
+    Corners valid_corners;
+    
+    for (const auto& corner : corners) {
+        double u_init = corner.pt.x;
+        double v_init = corner.pt.y;
+        double u_cur = u_init, v_cur = v_init;
+        bool is_saddle_point = true;
+        
+        // Check bounds
+        if (u_cur - radius < 0 || u_cur + radius >= img_gray_.cols - 1 || 
+            v_cur - radius < 0 || v_cur + radius >= img_gray_.rows - 1) {
+            continue;
+        }
+        
+        // Iterative polynomial fitting to validate saddle point
+        for (int iter = 0; iter < max_iteration && is_saddle_point; ++iter) {
+            // Extract local patch
+            cv::Rect patch_rect(u_cur - radius, v_cur - radius, 2*radius + 1, 2*radius + 1);
+            cv::Mat patch = img_gray_(patch_rect);
+            
+            // Simple saddle point validation using Hessian determinant
+            cv::Mat grad_x, grad_y, grad_xx, grad_yy, grad_xy;
+            cv::Sobel(patch, grad_x, CV_64F, 1, 0, 3);
+            cv::Sobel(patch, grad_y, CV_64F, 0, 1, 3);
+            cv::Sobel(grad_x, grad_xx, CV_64F, 1, 0, 3);
+            cv::Sobel(grad_y, grad_yy, CV_64F, 0, 1, 3);
+            cv::Sobel(grad_x, grad_xy, CV_64F, 0, 1, 3);
+            
+            // Check if center point has negative Hessian determinant (saddle point characteristic)
+            int center = radius;
+            double fxx = grad_xx.at<double>(center, center);
+            double fyy = grad_yy.at<double>(center, center);
+            double fxy = grad_xy.at<double>(center, center);
+            double det = fxx * fyy - fxy * fxy;
+            
+            if (det > 0) {
+                is_saddle_point = false;
+                break;
+            }
+            
+            // Simple convergence check
+            break; // For now, just do one iteration
+        }
+        
+        if (is_saddle_point) {
+            valid_corners.push_back(corner);
+        }
+    }
+    
+    corners = valid_corners;
+}
+
 void ChessboardDetector::refineCorners(Corners& corners) {
-    // Placeholder for subpixel refinement
-    // The full implementation would use the iterative refinement from refineCorners.m
-    std::cout << "Refining corners (simplified implementation)..." << std::endl;
+    if (!params_.polynomial_fit) {
+        std::cout << "Refining corners (skipped polynomial fitting)..." << std::endl;
+        return;
+    }
+    const int width = img_du_.cols;
+    const int height = img_du_.rows;
+    const int r = params_.polynomial_fit_half_kernel_size;
+    ZeroCrossingFilter zf;
+    ZeroCrossingFilter::FilterParams fp;
+    const int n_bin = fp.n_bin;
+    for (size_t i = 0; i < corners.size(); ++i) {
+        int cu = static_cast<int>(std::round(corners[i].pt.x));
+        int cv = static_cast<int>(std::round(corners[i].pt.y));
+        int u_min = std::max(cu - r, 0);
+        int u_max = std::min(cu + r, width - 1);
+        int v_min = std::max(cv - r, 0);
+        int v_max = std::min(cv + r, height - 1);
+        std::vector<double> angle_hist(n_bin, 0.0);
+        for (int v = v_min; v <= v_max; ++v) {
+            for (int u = u_min; u <= u_max; ++u) {
+                double angle_val = img_angle_.at<double>(v, u);
+                double w = img_weight_.at<double>(v, u);
+                if (w <= 0) continue;
+                int bin = static_cast<int>(std::floor(angle_val / (M_PI / n_bin))) % n_bin;
+                angle_hist[bin] += w;
+            }
+        }
+        auto modes = zf.findModesMeanShift(angle_hist);
+        if (modes.size() < 2) {
+            corners[i].v1 = cv::Vec2d(0, 0);
+            corners[i].v2 = cv::Vec2d(0, 0);
+            continue;
+        }
+        std::sort(modes.begin(), modes.end(), [](auto &a, auto &b){ return a.second > b.second; });
+        std::vector<std::pair<int,double>> top2(modes.begin(), modes.begin() + 2);
+        std::sort(top2.begin(), top2.end(), [](auto &a, auto &b){ return a.first < b.first; });
+        double theta1 = top2[0].first * (M_PI / n_bin);
+        double theta2 = top2[1].first * (M_PI / n_bin);
+        double delta = std::min(std::abs(theta2 - theta1), theta1 + M_PI - theta2);
+        if (delta <= 0.3) {
+            corners[i].v1 = cv::Vec2d(0, 0);
+            corners[i].v2 = cv::Vec2d(0, 0);
+            continue;
+        }
+        cv::Vec2d v1(std::cos(theta1), std::sin(theta1));
+        cv::Vec2d v2(std::cos(theta2), std::sin(theta2));
+        corners[i].v1 = v1;
+        corners[i].v2 = v2;
+        cv::Mat A1 = cv::Mat::zeros(2, 2, CV_64F);
+        cv::Mat A2 = cv::Mat::zeros(2, 2, CV_64F);
+        for (int v = v_min; v <= v_max; ++v) {
+            for (int u = u_min; u <= u_max; ++u) {
+                double du = img_du_.at<double>(v, u);
+                double dv = img_dv_.at<double>(v, u);
+                cv::Vec2d o(du, dv);
+                double no = cv::norm(o);
+                if (no < 0.1) continue;
+                o /= no;
+                if (std::abs(o.dot(v1)) < 0.25) {
+                    cv::Mat H = (cv::Mat_<double>(2,2) << du*du, du*dv, dv*du, dv*dv);
+                    A1 += H;
+                }
+                if (std::abs(o.dot(v2)) < 0.25) {
+                    cv::Mat H = (cv::Mat_<double>(2,2) << du*du, du*dv, dv*du, dv*dv);
+                    A2 += H;
+                }
+            }
+        }
+        cv::Mat evals, evecs;
+        cv::eigen(A1, evals, evecs);
+        corners[i].v1 = cv::Vec2d(evecs.at<double>(0,0), evecs.at<double>(0,1));
+        cv::eigen(A2, evals, evecs);
+        corners[i].v2 = cv::Vec2d(evecs.at<double>(0,0), evecs.at<double>(0,1));
+        cv::Mat G = cv::Mat::zeros(2, 2, CV_64F);
+        cv::Mat b = cv::Mat::zeros(2, 1, CV_64F);
+        for (int v = v_min; v <= v_max; ++v) {
+            for (int u = u_min; u <= u_max; ++u) {
+                if (u == cu && v == cv) continue;
+                double du = img_du_.at<double>(v, u);
+                double dv = img_dv_.at<double>(v, u);
+                cv::Vec2d o(du, dv);
+                double no = cv::norm(o);
+                if (no < 0.1) continue;
+                o /= no;
+                cv::Vec2d w(u - cu, v - cv);
+                double d1 = cv::norm(w - (w.dot(v1))*v1);
+                double d2 = cv::norm(w - (w.dot(v2))*v2);
+                if ((d1 < 3 && std::abs(o.dot(v1)) < 0.25) ||
+                    (d2 < 3 && std::abs(o.dot(v2)) < 0.25)) {
+                    cv::Mat H = (cv::Mat_<double>(2,2) << du*du, du*dv, dv*du, dv*dv);
+                    G += H;
+                    b.at<double>(0) += H.at<double>(0,0)*u + H.at<double>(0,1)*v;
+                    b.at<double>(1) += H.at<double>(1,0)*u + H.at<double>(1,1)*v;
+                }
+            }
+        }
+        double detG = G.at<double>(0,0)*G.at<double>(1,1) - G.at<double>(0,1)*G.at<double>(1,0);
+        if (std::abs(detG) > 1e-6) {
+            cv::Mat x = G.inv() * b;
+            cv::Point2d new_pt(x.at<double>(0), x.at<double>(1));
+            if (cv::norm(new_pt - corners[i].pt) < 4.0) {
+                corners[i].pt = new_pt;
+            } else {
+                corners[i].v1 = cv::Vec2d(0, 0);
+                corners[i].v2 = cv::Vec2d(0, 0);
+            }
+        } else {
+            corners[i].v1 = cv::Vec2d(0, 0);
+            corners[i].v2 = cv::Vec2d(0, 0);
+        }
+    }
 }
 
 void ChessboardDetector::scoreCorners(Corners& corners) {
@@ -627,7 +1076,8 @@ double ChessboardDetector::computeCornerQualityScore(const Corner& corner, int r
 }
 
 void ChessboardDetector::filterCorners(Corners& corners) {
-    corners.filterByScore(params_.corner_threshold);
+    // Multi-stage strict filtering (quality, statistical, spatial)
+    ::cbdetect::filterCorners(corners, params_);
 }
 
 int ChessboardDetector::findDirectionalNeighbor(int corner_idx, const cv::Vec2f& direction, 
@@ -771,8 +1221,13 @@ int ChessboardDetector::findDirectionalNeighborFast(int corner_idx, const cv::Ve
 Chessboard ChessboardDetector::initChessboard(const Corners& corners, int seed_idx) {
     // Implementation based on MATLAB's initChessboard function
     
+    std::cout << "    initChessboard: Starting for seed " << seed_idx << ", total corners: " << corners.size() << std::endl;
+    std::cout.flush();
+    
     // Return empty chessboard if not enough corners
-    if (corners.size() < 9 || seed_idx < 0 || seed_idx >= static_cast<int>(corners.size())) {
+    if (corners.size() < 6 || seed_idx < 0 || seed_idx >= static_cast<int>(corners.size())) {  // 降低要求：从9改为6
+        std::cout << "    initChessboard: FAIL - insufficient corners or invalid seed (" << corners.size() << " < 6 or seed " << seed_idx << " invalid)" << std::endl;
+        std::cout.flush();
         return Chessboard();
     }
     
@@ -780,8 +1235,12 @@ Chessboard ChessboardDetector::initChessboard(const Corners& corners, int seed_i
     cv::Vec2f v1 = corners[seed_idx].v1;
     cv::Vec2f v2 = corners[seed_idx].v2;
     
+    std::cout << "    initChessboard: Seed " << seed_idx << " direction vectors - v1: (" << v1[0] << ", " << v1[1] 
+              << "), v2: (" << v2[0] << ", " << v2[1] << ")" << std::endl;
+    std::cout.flush();
+    
     // 调试输出：检查方向向量质量
-    bool debug = (seed_idx < 5);  // 只对前5个角点输出调试信息
+    bool debug = true;  // 临时：对所有角点输出调试信息，而不是只针对前5个
     if (debug) {
         std::cout << "  Debug: seed " << seed_idx << " - v1: (" << v1[0] << ", " << v1[1] 
                   << "), v2: (" << v2[0] << ", " << v2[1] << ")" << std::endl;
@@ -791,6 +1250,8 @@ Chessboard ChessboardDetector::initChessboard(const Corners& corners, int seed_i
         if (debug) {
             std::cout << "  Debug: seed " << seed_idx << " rejected - invalid direction vectors" << std::endl;
         }
+        std::cout << "    initChessboard: FAIL - invalid direction vectors (norms: " << cv::norm(v1) << ", " << cv::norm(v2) << ")" << std::endl;
+        std::cout.flush();
         return Chessboard();  // Invalid direction vectors
     }
     
@@ -1056,6 +1517,81 @@ float ChessboardDetector::computeChessboardEnergy(const Chessboard& chessboard,
 bool ChessboardDetector::isChessboardValid(const Chessboard& chessboard, const Corners& corners) {
     // Basic validity check
     return !chessboard.empty() && chessboard.getCornerCount() >= 9;
+}
+
+void ChessboardDetector::filterDuplicateChessboards(Chessboards& chessboards, const Corners& corners) {
+    if (chessboards.size() <= 1) return;
+    
+    std::cout << "  Post-filtering: checking " << chessboards.size() << " chessboards for duplicates..." << std::endl;
+    
+    // 按能量排序（能量越低越好）
+    std::sort(chessboards.begin(), chessboards.end(),
+              [](const std::shared_ptr<Chessboard>& a, const std::shared_ptr<Chessboard>& b) {
+                  return a->energy < b->energy;
+              });
+    
+    std::vector<bool> keep(chessboards.size(), true);
+    int removed_count = 0;
+    
+    // 检查重叠
+    for (size_t i = 0; i < chessboards.size(); ++i) {
+        if (!keep[i]) continue;
+        
+        for (size_t j = i + 1; j < chessboards.size(); ++j) {
+            if (!keep[j]) continue;
+            
+            // 计算重叠度
+            double overlap_ratio = computeChessboardOverlap(*chessboards[i], *chessboards[j], corners);
+            
+            if (overlap_ratio > 0.7) {  // 70%重叠认为是重复
+                keep[j] = false;
+                removed_count++;
+                std::cout << "    Removed duplicate chessboard " << j << " (overlap: " 
+                          << (overlap_ratio * 100) << "%)" << std::endl;
+            }
+        }
+    }
+    
+    // 保留非重复的棋盘格
+    Chessboards filtered_chessboards;
+    for (size_t i = 0; i < chessboards.size(); ++i) {
+        if (keep[i]) {
+            filtered_chessboards.push_back(chessboards[i]);
+        }
+    }
+    
+    chessboards = filtered_chessboards;
+    std::cout << "  Post-filtering: removed " << removed_count << " duplicate chessboards" << std::endl;
+}
+
+double ChessboardDetector::computeChessboardOverlap(const Chessboard& cb1, const Chessboard& cb2, const Corners& corners) {
+    // 获取两个棋盘格的所有角点
+    std::vector<int> corners1 = cb1.getAllCornerIndices();
+    std::vector<int> corners2 = cb2.getAllCornerIndices();
+    
+    // 计算重叠的角点数量
+    int overlap_count = 0;
+    for (int idx1 : corners1) {
+        if (idx1 < 0 || idx1 >= static_cast<int>(corners.size())) continue;
+        
+        cv::Point2d pt1 = corners[idx1].pt;
+        
+        for (int idx2 : corners2) {
+            if (idx2 < 0 || idx2 >= static_cast<int>(corners.size())) continue;
+            
+            cv::Point2d pt2 = corners[idx2].pt;
+            double distance = cv::norm(pt1 - pt2);
+            
+            if (distance < 10.0) {  // 10像素内认为是同一个角点
+                overlap_count++;
+                break;
+            }
+        }
+    }
+    
+    // 计算重叠比例
+    int total_corners = std::max(corners1.size(), corners2.size());
+    return total_corners > 0 ? static_cast<double>(overlap_count) / total_corners : 0.0;
 }
 
 } // namespace cbdetect 

@@ -22,8 +22,8 @@ public:
         int need_modes;       // 需要的模式数 (SaddlePoint)
         double sample_radius_factor; // 采样半径因子
         
-        FilterParams() : n_circle(32), n_bin(32), crossing_threshold(3), 
-                        need_crossings(4), need_modes(2), sample_radius_factor(0.75) {}
+                FilterParams() : n_circle(32), n_bin(32), crossing_threshold(1),  // Further relaxed to 1
+                         need_crossings(2), need_modes(1), sample_radius_factor(0.75) {}  // Further relaxed to 2
     };
 
     /**
@@ -96,6 +96,7 @@ private:
                        int center_u, int center_v,
                        int radius);
 
+public:
     /**
      * @brief 使用Mean Shift算法查找角度直方图模式
      * @param histogram 角度直方图
@@ -105,6 +106,8 @@ private:
     std::vector<std::pair<int, double>> findModesMeanShift(
         const std::vector<double>& histogram,
         double bandwidth = 1.5);
+
+private:
 
     /**
      * @brief 创建权重掩码

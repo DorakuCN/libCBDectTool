@@ -54,12 +54,12 @@ int main(int argc, char** argv) {
     DetectionParams params;
     params.detect_method = DetectMethod::TEMPLATE_MATCH_FAST;
     params.corner_type = CornerType::SADDLE_POINT;
-    params.corner_threshold = 0.01f;
+    params.corner_threshold = 0.01f;  // Match MATLAB threshold
     params.refine_corners = true;
     params.show_processing = true;
     params.show_debug_images = false;
     
-    // Use multiple scales for better detection
+    // Use multiple scales for better detection (参考MATLAB版本)
     params.template_radii = {4, 8, 12};
     params.energy_threshold = -10.0f;
     
@@ -86,6 +86,12 @@ int main(int argc, char** argv) {
     
     // For visualization, we also need the corners
     Corners corners = detector.findCorners(image);
+    // DEBUG: dump final corner UV coordinates for comparison
+    std::cout << "DEBUG: final corners (uv coords) [" << corners.size() << "]:\n";
+    for (size_t i = 0; i < corners.size(); ++i) {
+        std::cout << "  " << i << ": ("
+                  << corners[i].pt.x << "," << corners[i].pt.y << ")\n";
+    }
     
     // Draw results
     Mat result_image = image.clone();

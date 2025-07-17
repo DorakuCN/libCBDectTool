@@ -87,30 +87,59 @@ end
 % extract corner candidates via non maximum suppression
 corners.p = nonMaximumSuppression(img_corners,3,0.025,5);
 
+fprintf('=== MATLAB Corner Detection Debug ===\n');
+fprintf('Initial corner candidates from NMS: %d\n', size(corners.p,1));
+
 disp('Refining ...');
 
 % subpixel refinement
 if refine_corners
+  corners_before_refine = size(corners.p,1);
   corners = refineCorners(img_du,img_dv,img_angle,img_weight,corners,10);
+  fprintf('After subpixel refinement: %d corners (removed %d invalid)\n', ...
+      size(corners.p,1), corners_before_refine - size(corners.p,1));
 end
 
 % remove corners without edges
 idx = corners.v1(:,1)==0 & corners.v1(:,2)==0;
+corners_before_edge_filter = size(corners.p,1);
 corners.p(idx,:)  = [];
 corners.v1(idx,:) = [];
 corners.v2(idx,:) = [];
+fprintf('After edge filter: %d corners (removed %d without edges)\n', ...
+    size(corners.p,1), corners_before_edge_filter - size(corners.p,1));
 
 disp('Scoring ...');
 
 % score corners
 corners = scoreCorners(img,img_angle,img_weight,corners,radius);
+fprintf('Corner scoring completed for %d corners\n', size(corners.p,1));
+
+% 显示评分统计
+if size(corners.score,1) > 0
+    fprintf('Score statistics: min=%.4f, max=%.4f, mean=%.4f, std=%.4f\n', ...
+        min(corners.score), max(corners.score), mean(corners.score), std(corners.score));
+    fprintf('Score threshold (tau): %.4f\n', tau);
+end
 
 % remove low scoring corners
 idx = corners.score<tau;
+corners_before_score_filter = size(corners.p,1);
+num_below_threshold = sum(idx);
 corners.p(idx,:)     = [];
 corners.v1(idx,:)    = [];
 corners.v2(idx,:)    = [];
 corners.score(idx) = [];
+
+fprintf('After score filter (tau=%.4f): %d corners (removed %d below threshold)\n', ...
+    tau, size(corners.p,1), num_below_threshold);
+fprintf('Final corner detection result: %d corners\n', size(corners.p,1));
+
+% Debug: print corner coordinates for comparison with C++
+fprintf('\nMATLAB corners first 10 coordinates (0-based, after conversion):\n');
+for i = 1:min(10, size(corners.p,1))
+    fprintf('  %d: (%.2f, %.2f)\n', i-1, corners.p(i,1), corners.p(i,2));
+end
 
 % make v1(:,1)+v1(:,2) positive (=> comparable to c++ code)
 idx = corners.v1(:,1)+corners.v1(:,2)<0;
@@ -122,4 +151,9 @@ flip       = -sign(corners_n1(:,1).*corners.v2(:,1)+corners_n1(:,2).*corners.v2(
 corners.v2 = corners.v2.*(flip*ones(1,2));
 
 % convert to 0-based index
-corners.p = corners.p-1;
+% convert to 0-based index
+corners.p = corners.p - 1;
+
+% Debug: print corners.p for comparison
+disp('MATLAB: findCorners output p (0-based coords):');
+disp(corners.p);

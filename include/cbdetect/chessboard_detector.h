@@ -37,7 +37,7 @@ struct DetectionParams {
     CornerType corner_type = CornerType::SADDLE_POINT;
     
     // Corner detection parameters
-    float corner_threshold = 0.01f;     // Minimum corner quality threshold
+    float corner_threshold = 0.001f;    // Minimum corner quality threshold (lowered for debugging)
     bool refine_corners = true;         // Whether to perform subpixel refinement
     int max_refinement_iterations = 10; // Maximum iterations for corner refinement
     float init_loc_threshold = 0.005f;  // Initial location threshold
@@ -70,6 +70,9 @@ struct DetectionParams {
     // Performance options
     bool enable_parallel = true;        // Enable parallel processing
     int num_threads = -1;               // Number of threads (-1 = auto)
+    
+    // MATLAB matching options (debug)
+    bool disable_zero_crossing_filter = false;  // Skip zero-crossing & multi-stage filter to match MATLAB findCorners
     
     DetectionParams() = default;
 };
@@ -116,20 +119,30 @@ public:
     static void drawChessboards(cv::Mat& image, const Chessboards& chessboards, 
                                const Corners& corners, const cv::Scalar& color = cv::Scalar(0, 0, 255));
     
+    // Post-processing functions
+    static void filterDuplicateChessboards(Chessboards& chessboards, const Corners& corners);
+    static double computeChessboardOverlap(const Chessboard& cb1, const Chessboard& cb2, const Corners& corners);
+    
     // Get internal processing results (for debugging)
     const cv::Mat& getCornerResponse() const { return img_corners_; }
     const cv::Mat& getGradientAngle() const { return img_angle_; }
     const cv::Mat& getGradientMagnitude() const { return img_weight_; }
     
 private:
-    // Internal processing steps
+    // Main detection methods
     void preprocessImage(const cv::Mat& image);
     void computeGradients();
+    std::vector<cv::Point2d> detectCorners(const cv::Mat& image);
     void detectCornerCandidates();
     Corners extractCorners();
     void refineCorners(Corners& corners);
     void scoreCorners(Corners& corners);
     void filterCorners(Corners& corners);
+    
+    // libcdetSample-style helper methods
+    void createCorrelationPatch(std::vector<cv::Mat>& templates, double angle1, double angle2, int radius);
+    std::vector<cv::Point2d> applyNonMaximumSuppression(const cv::Mat& corner_map, int radius, double threshold);
+    void polynomialFitValidation(Corners& corners);
     
     // Multi-scale detection functions
     Corners findCornersAtScale(const cv::Mat& image, double scale);

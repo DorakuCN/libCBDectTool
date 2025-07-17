@@ -17,8 +17,12 @@
 
 function chessboard = initChessboard(corners,idx)
 
+% 添加调试信息
+fprintf('    initChessboard: Starting for seed %d, total corners: %d\n', idx, size(corners.p,1));
+
 % return if not enough corners
 if size(corners.p,1)<9
+  fprintf('    initChessboard: FAIL - insufficient corners (%d < 9)\n', size(corners.p,1));
   chessboard = [];
   return;
 end
@@ -29,6 +33,10 @@ chessboard = zeros(3,3);
 % extract feature index and orientation (central element)
 v1 = corners.v1(idx,:);
 v2 = corners.v2(idx,:);
+
+fprintf('    initChessboard: Seed %d direction vectors - v1: (%.3f,%.3f), v2: (%.3f,%.3f)\n', ...
+    idx, v1(1), v1(2), v2(1), v2(2));
+
 chessboard(2,2) = idx;
 
 % find left/right/top/bottom neighbors
@@ -43,12 +51,20 @@ chessboard(2,2) = idx;
 [chessboard(1,3),dist2(5)] = directionalNeighbor(chessboard(2,3),-v2,chessboard,corners);
 [chessboard(3,3),dist2(6)] = directionalNeighbor(chessboard(2,3),+v2,chessboard,corners);
 
+% 添加邻居查找结果调试
+fprintf('    Debug: seed %d neighbors - right: %d, left: %d, bottom: %d, top: %d\n', ...
+    idx, chessboard(2,3), chessboard(2,1), chessboard(3,2), chessboard(1,2));
+
 % initialization must be homogenously distributed
 if any(isinf(dist1)) || any(isinf(dist2)) || ...
    std(dist1)/mean(dist1)>0.3 || std(dist2)/mean(dist2)>0.3
+  fprintf('    initChessboard: FAIL - non-homogeneous distribution (dist1_std/mean=%.3f, dist2_std/mean=%.3f)\n', ...
+      std(dist1)/mean(dist1), std(dist2)/mean(dist2));
   chessboard = [];
   return;
 end
+
+fprintf('    initChessboard: SUCCESS - created valid 3x3 chessboard\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

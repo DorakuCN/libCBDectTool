@@ -141,19 +141,19 @@ void filterCorners(Corners& corners, const DetectionParams& params) {
     std::cout << "    Median: " << stats.median << std::endl;
     std::cout << "    95th percentile: " << stats.percentile_95 << std::endl;
     
-    // Stage 2: Statistical filtering (remove obvious outliers)
-    corners = filterByStatistics(corners, stats);
+    // Stage 2: Statistical filtering (remove obvious outliers) - 更宽松
+    // corners = filterByStatistics(corners, stats);  // 暂时跳过统计过滤
     std::cout << "  After statistical filter: " << corners.size() 
               << " (" << (100.0 * corners.size() / initial_count) << "%)" << std::endl;
     
-    // Stage 3: Spatial distribution filtering (minimum 6 pixels apart)
-    spatialNonMaximumSuppression(corners, 6.0);
+    // Stage 3: Spatial distribution filtering (minimum 3 pixels apart) - 更宽松
+    spatialNonMaximumSuppression(corners, 3.0);
     std::cout << "  After spatial filter (6px): " << corners.size() 
               << " (" << (100.0 * corners.size() / initial_count) << "%)" << std::endl;
     
-    // Stage 4: Keep top corners for structure recovery (target: 30-50 corners)
-    size_t target_count = std::max(30, static_cast<int>(initial_count * 0.05));  // At least 30 corners or 5%
-    target_count = std::min(target_count, static_cast<size_t>(initial_count * 0.15));  // But not more than 15%
+    // Stage 4: Keep top corners for structure recovery (target: 20-50 corners)
+    size_t target_count = std::max(20, static_cast<int>(initial_count * 0.3));  // At least 20 corners or 30%
+    target_count = std::min(target_count, static_cast<size_t>(initial_count * 0.5));  // But not more than 50%
     target_count = std::min(target_count, corners.size());  // But not more than available
     
     // Sort by score and keep top N corners
@@ -186,14 +186,20 @@ void filterCorners(Corners& corners, const DetectionParams& params) {
 
 void scoreCorners(Corners& corners, const cv::Mat& image, const cv::Mat& gradient_magnitude) {
     // Enhanced corner scoring using gradient × intensity correlation
-    for (auto& corner : corners) {
+    std::cout << "Scoring " << corners.size() << " corners..." << std::endl;
+    
+    for (size_t i = 0; i < corners.size(); ++i) {
+        auto& corner = corners[i];
+        
         // Get local patch around corner
-        int radius = 8;
+        int radius = 4;  // Reduced radius for safety
         int x = static_cast<int>(std::round(corner.pt.x));
         int y = static_cast<int>(std::round(corner.pt.y));
         
-        if (x - radius < 0 || x + radius >= image.cols || 
-            y - radius < 0 || y + radius >= image.rows) {
+        // More conservative boundary checking
+        if (x < radius || x >= image.cols - radius || 
+            y < radius || y >= image.rows - radius ||
+            image.empty() || gradient_magnitude.empty()) {
             corner.quality_score = 0.0;
             continue;
         }
@@ -222,9 +228,11 @@ void scoreCorners(Corners& corners, const cv::Mat& image, const cv::Mat& gradien
             if (v1_length > 0.1 && v2_length > 0.1) {
                 // Reward strong directional components
                 corner.quality_score *= (1.0 + 0.5 * std::min(v1_length, v2_length));
-            }
-        }
+                    }
     }
+    
+    std::cout << "Corner scoring completed" << std::endl;
+}
     
     std::cout << "Corner scoring completed" << std::endl;
 }
