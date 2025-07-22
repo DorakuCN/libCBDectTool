@@ -4,6 +4,7 @@
 #include "corner.h"
 #include "chessboard.h"
 #include "template_matching.h"
+#include "image_preprocessing.h"
 #include <opencv2/opencv.hpp>
 #include <memory>
 
@@ -74,6 +75,10 @@ struct DetectionParams {
     // MATLAB matching options (debug)
     bool disable_zero_crossing_filter = false;  // Skip zero-crossing & multi-stage filter to match MATLAB findCorners
     
+    // Image preprocessing parameters
+    bool enable_image_preprocessing = true;     // Enable image preprocessing
+    PreprocessingParams preprocessing_params;   // Image preprocessing parameters
+    
     DetectionParams() = default;
 };
 
@@ -95,6 +100,9 @@ private:
     // Corner detection algorithms
     std::unique_ptr<TemplateCornerDetector> template_detector_;
     std::unique_ptr<HessianCornerDetector> hessian_detector_;
+    
+    // Image preprocessor
+    std::unique_ptr<ImagePreprocessor> image_preprocessor_;
     
     // Compute quality score for a single corner (like MATLAB's cornerCorrelationScore)
     double computeCornerQualityScore(const Corner& corner, int radius);

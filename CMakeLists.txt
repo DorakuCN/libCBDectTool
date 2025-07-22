@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(libcbdetect VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find required packages
@@ -27,8 +27,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra")
 add_subdirectory(src)
 
 # Create demo executables
+# 保证demo.cpp被编译为可执行文件demo
 add_executable(demo src/demo.cpp)
-target_link_libraries(demo cbdetect ${OpenCV_LIBS})
+target_link_libraries(demo PRIVATE opencv_core opencv_imgcodecs opencv_imgproc opencv_highgui)
+target_link_libraries(demo PRIVATE cbdetect)
 
 add_executable(pipeline_demo src/pipeline_demo.cpp)
 target_link_libraries(pipeline_demo cbdetect ${OpenCV_LIBS})
@@ -77,6 +79,78 @@ target_link_libraries(debug_comparison cbdetect ${OpenCV_LIBS})
 add_executable(matlab_cpp_comparison src/matlab_cpp_comparison.cpp)
 target_link_libraries(matlab_cpp_comparison cbdetect ${OpenCV_LIBS})
 
+# Direction vector debug test
+add_executable(direction_debug src/debug_direction_vectors.cpp)
+target_link_libraries(direction_debug cbdetect ${OpenCV_LIBS})
+
+# Histogram debug test
+add_executable(histogram_debug src/debug_histogram.cpp)
+target_link_libraries(histogram_debug cbdetect ${OpenCV_LIBS})
+
+# Angle delta debug test
+add_executable(angle_delta_debug src/debug_angle_delta.cpp)
+target_link_libraries(angle_delta_debug cbdetect ${OpenCV_LIBS})
+
+# detG debug test
+add_executable(detG_debug src/debug_detG.cpp)
+target_link_libraries(detG_debug cbdetect ${OpenCV_LIBS})
+
+# Matrix A debug test
+add_executable(matrix_A_debug src/debug_matrix_A.cpp)
+target_link_libraries(matrix_A_debug cbdetect ${OpenCV_LIBS})
+
+# Chessboard detection debug test
+add_executable(chessboard_debug src/debug_chessboard_detection.cpp)
+target_link_libraries(chessboard_debug cbdetect ${OpenCV_LIBS})
+
+# Image preprocessing demo
+add_executable(image_preprocessing_demo src/image_preprocessing_demo.cpp)
+target_link_libraries(image_preprocessing_demo cbdetect ${OpenCV_LIBS})
+
+# Comprehensive image preprocessing test
+add_executable(image_preprocessing_test src/image_preprocessing_comprehensive_test.cpp)
+target_link_libraries(image_preprocessing_test cbdetect ${OpenCV_LIBS})
+
+# Gamma enhancement demo
+add_executable(gamma_enhancement_demo src/gamma_enhancement_demo.cpp src/gamma_enhancement.cpp)
+target_link_libraries(gamma_enhancement_demo cbdetect ${OpenCV_LIBS})
+
+# Lighting analysis and detection optimization
+add_executable(lighting_analysis_detection src/lighting_analysis_detection.cpp)
+target_link_libraries(lighting_analysis_detection cbdetect ${OpenCV_LIBS})
+
+# Parameter optimization test
+add_executable(parameter_optimization_test src/parameter_optimization_test.cpp)
+target_link_libraries(parameter_optimization_test cbdetect ${OpenCV_LIBS})
+
+# Auto corner debug
+add_executable(auto_corner_debug src/auto_corner_debug.cpp)
+target_link_libraries(auto_corner_debug cbdetect ${OpenCV_LIBS})
+
+# OpenCV comparison optimization
+add_executable(opencv_comparison_optimization src/opencv_comparison_optimization.cpp)
+target_link_libraries(opencv_comparison_optimization cbdetect ${OpenCV_LIBS})
+
+# Corner detection optimizer
+add_executable(corner_detection_optimizer src/corner_detection_optimizer.cpp)
+target_link_libraries(corner_detection_optimizer cbdetect ${OpenCV_LIBS})
+
+# Automated testing debug
+add_executable(automated_testing_debug src/automated_testing_debug.cpp)
+target_link_libraries(automated_testing_debug cbdetect ${OpenCV_LIBS})
+
+# Add filesystem library for C++17
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(image_preprocessing_test stdc++fs)
+    target_link_libraries(gamma_enhancement_demo stdc++fs)
+    target_link_libraries(lighting_analysis_detection stdc++fs)
+    target_link_libraries(parameter_optimization_test stdc++fs)
+    target_link_libraries(auto_corner_debug stdc++fs)
+    target_link_libraries(opencv_comparison_optimization stdc++fs)
+    target_link_libraries(corner_detection_optimizer stdc++fs)
+    target_link_libraries(automated_testing_debug stdc++fs)
+endif()
+
 # Create library
 add_library(cbdetect STATIC
     src/corner.cpp
@@ -85,6 +159,7 @@ add_library(cbdetect STATIC
     src/template_matching.cpp
     src/correlation_template.cpp
     src/image_processing.cpp
+    src/image_preprocessing.cpp
     src/non_maximum_suppression.cpp
     src/subpixel_refinement.cpp
     src/corner_scoring.cpp

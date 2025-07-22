@@ -19,6 +19,9 @@ ChessboardDetector::ChessboardDetector(const DetectionParams& params)
     // Initialize detectors
     template_detector_ = std::make_unique<TemplateCornerDetector>();
     hessian_detector_ = std::make_unique<HessianCornerDetector>();
+    
+    // Initialize image preprocessor
+    image_preprocessor_ = std::make_unique<ImagePreprocessor>(params.preprocessing_params);
 }
 
 Chessboards ChessboardDetector::detectChessboards(const cv::Mat& image) {
@@ -245,7 +248,7 @@ Chessboards ChessboardDetector::recoverStructure(const Corners& corners) {
     
     // 使用MATLAB版本的能量阈值
     const double ENERGY_THRESHOLD_INIT = 0.0;      // MATLAB初始化阈值
-    const double ENERGY_THRESHOLD_FINAL = -6.0;   // 放宽最终阈值：从-10改为-6.0
+    const double ENERGY_THRESHOLD_FINAL = -2.0;   // 放宽最终阈值：从-6.0改为-2.0
     
     std::cout << "  Energy thresholds: init=" << ENERGY_THRESHOLD_INIT 
               << ", final=" << ENERGY_THRESHOLD_FINAL << " (MATLAB/Sample standard)" << std::endl;
@@ -415,11 +418,25 @@ void ChessboardDetector::drawChessboards(cv::Mat& image, const Chessboards& ches
 // Private implementation methods (simplified versions)
 
 void ChessboardDetector::preprocessImage(const cv::Mat& image) {
+    cv::Mat processed_image = image.clone();
+    
+    // Apply image preprocessing if enabled
+    if (params_.enable_image_preprocessing && image_preprocessor_) {
+        std::cout << "Applying image preprocessing..." << std::endl;
+        processed_image = image_preprocessor_->preprocess(image);
+        
+        // Save preprocessed image for debugging
+        if (params_.show_debug_images) {
+            cv::imwrite("preprocessed_image.png", processed_image);
+            std::cout << "Preprocessed image saved to preprocessed_image.png" << std::endl;
+        }
+    }
+    
     // Convert to grayscale
-    if (image.channels() == 3) {
-        cv::cvtColor(image, img_gray_, cv::COLOR_BGR2GRAY);
+    if (processed_image.channels() == 3) {
+        cv::cvtColor(processed_image, img_gray_, cv::COLOR_BGR2GRAY);
     } else {
-        img_gray_ = image.clone();
+        img_gray_ = processed_image.clone();
     }
     
     // Convert to double with proper scaling (libcdetSample method)
@@ -862,18 +879,20 @@ void ChessboardDetector::refineCorners(Corners& corners) {
             }
         }
         double detG = G.at<double>(0,0)*G.at<double>(1,1) - G.at<double>(0,1)*G.at<double>(1,0);
-        if (std::abs(detG) > 1e-6) {
+        if (std::abs(detG) > 1e-8) {  // 放宽detG阈值
             cv::Mat x = G.inv() * b;
             cv::Point2d new_pt(x.at<double>(0), x.at<double>(1));
-            if (cv::norm(new_pt - corners[i].pt) < 4.0) {
+            if (cv::norm(new_pt - corners[i].pt) < 8.0) {  // 放宽位置更新阈值
                 corners[i].pt = new_pt;
             } else {
-                corners[i].v1 = cv::Vec2d(0, 0);
-                corners[i].v2 = cv::Vec2d(0, 0);
+                // 即使位置更新太大，也保留方向向量
+                // corners[i].v1 = cv::Vec2d(0, 0);
+                // corners[i].v2 = cv::Vec2d(0, 0);
             }
         } else {
-            corners[i].v1 = cv::Vec2d(0, 0);
-            corners[i].v2 = cv::Vec2d(0, 0);
+            // 即使detG太小，也保留方向向量
+            // corners[i].v1 = cv::Vec2d(0, 0);
+            // corners[i].v2 = cv::Vec2d(0, 0);
         }
     }
 }

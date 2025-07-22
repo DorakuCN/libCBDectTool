@@ -347,6 +347,17 @@ def save_detailed_results(comparison: ResultComparison, summary: Dict[str, Any])
     
     # 保存到文件
     with open(results_file, 'w', encoding='utf-8') as f:
+        # 转换numpy数组为列表以便JSON序列化
+        def convert_numpy(obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, dict):
+                return {k: convert_numpy(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_numpy(item) for item in obj]
+            return obj
+        
+        save_data = convert_numpy(save_data)
         json.dump(save_data, f, indent=2, ensure_ascii=False)
     
     print(f"\n详细结果已保存到: {results_file}")

@@ -6,7 +6,9 @@ disp('================================');
 addpath('matching');
 
 % 加载图像
-I = imread('../../data/04.png');
+%I = imread('../../data/imiSample/Color.bmp');
+I = imread('../../data/imiSample/IR.bmp');
+
 fprintf('Image loaded: %dx%d\n', size(I,2), size(I,1));
 
 % 角点检测

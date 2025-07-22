@@ -30,8 +30,17 @@ endif ()
 
 find_package(OpenCV REQUIRED)
 
-set(THIRD_PARTY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
-set(THIRD_PARTY_LIBS ${OpenCV_LIBS})
+# 可选的Ceres优化库支持
+option(USE_CERES "Enable Ceres optimization library support" OFF)
+if(USE_CERES)
+    find_package(Ceres REQUIRED)
+    add_definitions(-DUSE_CERES)
+    set(THIRD_PARTY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS} ${CERES_INCLUDE_DIRS})
+    set(THIRD_PARTY_LIBS ${OpenCV_LIBS} ${CERES_LIBRARIES})
+else()
+    set(THIRD_PARTY_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
+    set(THIRD_PARTY_LIBS ${OpenCV_LIBS})
+endif()
 include_directories(${THIRD_PARTY_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/include)
 

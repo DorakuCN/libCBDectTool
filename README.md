@@ -1,208 +1,85 @@
-# libCBDectTool - 棋盘格角点检测工具集
+# libcbdetCpp - Enhanced Chessboard Detection Library
 
-一个综合性的棋盘格角点检测工具集，集成了多种检测算法和工具链，包括MATLAB、C++和Python实现。
+## Overview
+Enhanced version of libcbdetCpp with improved chessboard detection algorithms, featuring robust corner detection, grid building, and missing corner completion.
 
-## 项目概述
+## Recent Updates (Latest)
 
-libCBDectTool 是一个高性能的棋盘格角点检测工具集，提供了多种算法实现和完整的测试工具链。项目包含：
+### Major Improvements
+1. **极简1-D DBSCAN聚类算法**
+   - 替换复杂的DBSCAN实现为高效的1-D版本
+   - 自动间距估计和参数优化
+   - 支持行列标签的精确分配
 
-- **C++核心检测器** - 高性能的C++实现
-- **MATLAB版本** - 用于算法验证和对比
-- **PyCBD集成** - Python增强版检测工具箱
-- **完整测试工具链** - 自动化测试和性能分析
+2. **单应性矩阵 + 局部搜索预测缺失角点**
+   - 使用`cv::findHomography`建立(r,c)→(x,y)映射
+   - `localCornerSearch`基于OpenCV棋盘格角点检测候选点
+   - 完全移除像素模板匹配，提高鲁棒性
+   - 支持三种点类型：0=预测-低置信, 1=原测得, 2=补全
 
-## 目录结构
+3. **改进的角点补全系统**
+   - `predictMissingCorners`: 基于单应性矩阵的预测
+   - `completeMissingCorners`: 简化的补全流程
+   - 智能权重处理，对补全点使用较低权重
 
-```
-libCBDectTool/
-├── src/                    # C++核心检测算法
-├── include/                # C++头文件
-├── data/                   # 测试图像数据
-├── tests/                  # Python测试脚本和包装器
-├── scripts/                # Shell脚本和构建工具
-├── docs/                   # 项目文档和分析报告
-├── logs/                   # 调试输出和结果日志
-├── result/                 # 检测结果图像
-├── build/                  # 构建输出目录
-├── 3rdparty/              # 第三方组件
-│   ├── libcbdetM/         # MATLAB版本
-│   ├── libcdetSample/     # 原始C++示例
-│   └── pyCBD/             # Python增强版
-└── python_binding/        # Python绑定
-```
+4. **增强的异常值剔除**
+   - `rejectOutliers2`: 支持点类型权重
+   - 自适应k_sigma搜索
+   - 局部一致性检查
 
-## 快速开始
+### Key Features
+- **Robust Corner Detection**: Enhanced libcbdetect integration
+- **Dynamic Parameter Adjustment**: Automatic parameter optimization
+- **Grid Quality Validation**: Fill rate and spacing analysis
+- **Bundle Adjustment Support**: Optional Ceres Solver integration
+- **Comprehensive Visualization**: Grid drawing and result analysis
 
-### 1. 构建C++项目
+### Build Instructions
 ```bash
-# 自动构建和测试
-./scripts/build_and_test.sh
+mkdir build && cd build
+cmake ..
+make
 ```
 
-### 2. 运行Python测试
+### Usage
 ```bash
-# 安装Python依赖
-cd tests
-pip install -r requirements.txt
-
-# 运行算法对比测试
-python compare_pycbd_libcbdetcpp.py
+./bin/example <image_path>
 ```
 
-### 3. 查看结果
-```bash
-# 查看检测结果
-open result/detection_visualization.png
+### Dependencies
+- OpenCV 4.x
+- Optional: Ceres Solver (for bundle adjustment)
 
-# 查看对比分析
-open result/detailed_comparison_analysis.png
-```
+### Test Results
+- **Color.bmp**: 81→119角点，填充率63.6%
+- **IR.bmp**: 95→112角点，填充率59.1%
 
-## 功能特性
+## Technical Details
 
-### 核心检测算法
-- **角点检测** - 高精度角点定位
-- **棋盘格识别** - 自动棋盘格结构分析
-- **亚像素精化** - 提高检测精度
-- **模板匹配** - 相关性评分算法
-- **非极大值抑制** - 去除重复检测
-
-### 算法对比
-- **libcbdetCpp**: 成功率 83.3%, 平均检测时间 0.15s
-- **PyCBD**: 成功率 50.0%, 平均检测时间 0.08s
-
-### 测试工具链
-- 自动化批量测试
-- 性能指标统计
-- 结果可视化
-- 详细调试输出
-
-## 使用指南
-
-### C++检测器
+### DBSCAN Clustering
 ```cpp
-#include "cbdetect/chessboard_detector.h"
-
-// 创建检测器
-ChessboardDetector detector;
-
-// 检测棋盘格
-std::vector<Chessboard> boards = detector.detect(image);
+void dbscan1D(const std::vector<float>& proj, float eps, int min_samples, std::vector<int>& labels)
 ```
+- 极简1-D实现，基于排序的区间扩张
+- 自动标签归一化
+- 参数：`eps = 0.3 * median_spacing`, `min_samples = 2`
 
-### Python包装器
-```python
-from tests.libcbdetCpp_wrapper import LibCBDetCppWrapper
-
-# 创建包装器
-wrapper = LibCBDetCppWrapper()
-
-# 检测棋盘格
-corners, boards = wrapper.detect("image.png")
+### Corner Completion
+```cpp
+void predictMissingCorners(const cv::Mat& gray, ...)
+void completeMissingCorners(const cv::Mat& gray, ...)
 ```
+- 单应性矩阵预测
+- 局部搜索精化
+- 智能权重处理
 
-### PyCBD集成
-```python
-from tests.pycbd_compatible_detector import PyCBDCompatibleDetector
-
-# 创建兼容检测器
-detector = PyCBDCompatibleDetector()
-
-# 检测棋盘格
-result = detector.detect(image)
+### Outlier Rejection
+```cpp
+void rejectOutliers2(..., const std::vector<char>& point_types, float k_sigma = 3.0f)
 ```
+- 支持点类型权重
+- 自适应阈值搜索
+- 局部一致性验证
 
-## 性能对比
-
-### 检测成功率
-- **libcbdetCpp**: 83.3% (5/6 图像)
-- **PyCBD**: 50.0% (3/6 图像)
-
-### 执行时间
-- **libcbdetCpp**: 平均 0.15s
-- **PyCBD**: 平均 0.08s
-
-### 角点检测精度
-- **libcbdetCpp**: 平均 84.2 个角点
-- **PyCBD**: 平均 82.8 个角点
-
-## 调试工具
-
-### 详细调试模式
-```bash
-# 运行详细调试对比
-./scripts/run_debug_comparison.sh
-
-# 查看调试日志
-cat logs/cpp_debug_detailed.txt
-```
-
-### 性能分析
-```bash
-# 运行性能对比
-./scripts/compare_cpp_matlab.sh
-
-# 查看性能报告
-cat logs/performance_report.txt
-```
-
-## 环境要求
-
-### 系统依赖
-- **C++**: CMake >= 3.10, OpenCV >= 4.0, gcc >= 7.0
-- **Python**: Python >= 3.8, 见 `tests/requirements.txt`
-- **MATLAB**: R2018b+ (可选，用于对比)
-
-### 安装步骤
-```bash
-# 1. 克隆项目
-git clone <repository-url>
-cd libCBDectTool
-
-# 2. 构建C++项目
-./scripts/build_and_test.sh
-
-# 3. 安装Python依赖
-cd tests
-pip install -r requirements.txt
-
-# 4. 运行测试
-python compare_pycbd_libcbdetcpp.py
-```
-
-## 文档
-
-- [项目状况总结](docs/PROJECT_STATUS_SUMMARY.md) - 详细的项目状态和功能说明
-- [测试脚本说明](tests/README.md) - Python测试脚本使用指南
-- [脚本工具说明](scripts/README.md) - Shell脚本使用指南
-- [算法对比报告](docs/PYCBD_LIBCBDETCPP_COMPARISON_REPORT.md) - 详细的算法对比分析
-- [核心算法分析](docs/PYCBD_CORE_ALGORITHM_ANALYSIS.md) - PyCBD核心算法分析
-
-## 贡献
-
-欢迎提交Issue和Pull Request来改进项目。
-
-## 许可证
-
-本项目基于MIT许可证开源，详见 [LICENSE](LICENSE) 文件。
-
-## 引用
-
-如果您觉得这个软件有用，请引用：
-
-```bibtex
-@INPROCEEDINGS{Geiger12,
- author = {Andreas Geiger and Frank Moosmann and Omer Car and Bernhard Schuster},
- title = {Automatic Camera and Range Sensor Calibration using a single Shot},
- booktitle = {International Conference on Robotics and Automation (ICRA)},
- year = {2012},
- month = {May},
- address = {St. Paul, USA}
-}
-```
-
-## 联系方式
-
-- 项目维护者: [您的姓名]
-- 邮箱: [您的邮箱]
-- 项目地址: [GitHub链接] 
+## License
+Original libcbdetect license applies. 

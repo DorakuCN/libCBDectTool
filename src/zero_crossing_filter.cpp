@@ -383,7 +383,22 @@ std::vector<std::pair<int, double>> ZeroCrossingFilter::findModesMeanShift(
                   return a.second > b.second;
               });
     
-    return modes;
+    // 移除重复的模式（相同的bin）
+    std::vector<std::pair<int, double>> unique_modes;
+    for (const auto& mode : modes) {
+        bool is_duplicate = false;
+        for (const auto& existing : unique_modes) {
+            if (mode.first == existing.first) {
+                is_duplicate = true;
+                break;
+            }
+        }
+        if (!is_duplicate) {
+            unique_modes.push_back(mode);
+        }
+    }
+    
+    return unique_modes;
 }
 
 cv::Mat ZeroCrossingFilter::createWeightMask(int radius) {
