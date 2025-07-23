@@ -1,0 +1,12 @@
+0
+0
+./data/IR_15.raw
+./data/Color_15.raw
+./data/Depth_15.raw
+640
+480
+2.2
+15
+2.5
+70
+regisD2C.txt
